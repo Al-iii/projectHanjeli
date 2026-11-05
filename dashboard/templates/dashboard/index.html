@@ -1,0 +1,163 @@
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hanjeli Monitoring Dashboard</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background: #f4f7f5;
+            color: #26352c;
+        }
+
+        .sidebar {
+            position: fixed;
+            width: 230px;
+            height: 100vh;
+            background: #183c2b;
+            color: white;
+            padding: 30px 20px;
+        }
+
+        .sidebar h2 {
+            margin-bottom: 40px;
+        }
+
+        .sidebar p {
+            padding: 14px 10px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            background: #28543d;
+        }
+
+        .main {
+            margin-left: 230px;
+            padding: 35px;
+        }
+
+        .header {
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            margin-bottom: 8px;
+        }
+
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-top: 25px;
+        }
+
+        .card {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 3px 12px #0000000a;
+        }
+
+        .card p {
+            color: #78857c;
+            margin-bottom: 15px;
+        }
+
+        .card h2 {
+            font-size: 28px;
+            color: #245b3c;
+        }
+
+        .status {
+            margin-top: 30px;
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+        }
+
+        @media (max-width: 900px) {
+            .cards {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 600px) {
+            .sidebar {
+                display: none;
+            }
+
+            .main {
+                margin-left: 0;
+                padding: 20px;
+            }
+
+            .cards {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="sidebar">
+        <h2>🌱 HANJELI</h2>
+        <p>Dashboard</p>
+        <p>Monitoring Sensor</p>
+        <p>Prediksi Pertumbuhan</p>
+        <p>Smart Irrigation</p>
+    </div>
+
+    <div class="main">
+
+        <div class="header">
+            <h1>Dashboard Monitoring</h1>
+            <p>Monitoring kondisi lingkungan tanaman Hanjeli</p>
+        </div>
+
+        <h3>Environmental Overview</h3>
+
+        <div class="cards">
+
+            <div class="card">
+                <p>🌡️ Suhu</p>
+                <h2>29.5 °C</h2>
+            </div>
+
+            <div class="card">
+                <p>💧 Kelembapan Tanah</p>
+                <h2>65 %</h2>
+            </div>
+
+            <div class="card">
+                <p>☁️ Kelembapan Udara</p>
+                <h2>78 %</h2>
+            </div>
+
+            <div class="card">
+                <p>🌱 Status Penyiraman</p>
+                <h2>OFF</h2>
+            </div>
+
+        </div>
+
+        <div class="status">
+            <h3>System Information</h3>
+            <br>
+            <p>Status Sistem: Menunggu koneksi sensor</p>
+            <br>
+            <p>Status Backend: Aktif</p>
+        </div>
+
+    </div>
+
+</body>
+</html>
