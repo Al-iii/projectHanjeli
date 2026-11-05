@@ -2,10 +2,24 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <title>Deteksi Hanjeli</title>
+    <title>Deteksi Tanaman Hanjeli</title>
 </head>
 <body>
     <h1>Deteksi Tanaman Hanjeli</h1>
-    <p>Halaman prediktor berhasil terhubung.</p>
+
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <input type="file" name="gambar" accept="image/*" required>
+        <button type="submit">Unggah gambar</button>
+    </form>
+
+    {% if error %}
+        <p>{{ error }}</p>
+    {% endif %}
+
+    {% if gambar_url %}
+        <h2>Gambar berhasil diunggah</h2>
+        <img src="{{ gambar_url }}" alt="Gambar yang diunggah" width="400">
+    {% endif %}
 </body>
 </html>
