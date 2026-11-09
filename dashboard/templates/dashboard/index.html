@@ -76,6 +76,54 @@
             color: #245b3c;
         }
 
+        /* Sensor Monitoring History */
+        .sensor-history {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            margin-top: 30px;
+            box-shadow: 0 3px 12px #0000000a;
+        }
+
+        .sensor-history h3 {
+            color: #193f2e;
+            margin-bottom: 8px;
+        }
+
+        .history-description {
+            color: #78857c;
+            margin-bottom: 20px;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+        }
+
+        .sensor-history table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .sensor-history th,
+        .sensor-history td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #eeeeee;
+        }
+
+        .sensor-history th {
+            background: #edf4ef;
+            color: #193f2e;
+        }
+
+        .sensor-history td {
+            color: #555;
+        }
+
+        .sensor-history tbody tr:hover {
+            background: #f8faf8;
+        }
+
         .status {
             margin-top: 30px;
             background: white;
@@ -147,6 +195,61 @@
                 <h2>OFF</h2>
             </div>
 
+        </div>
+
+        <!-- Sensor Monitoring History -->
+        <div class="sensor-history">
+
+            <h3>Sensor Monitoring History</h3>
+
+            <p class="history-description">
+                Riwayat pembacaan sensor lingkungan tanaman Hanjeli
+            </p>
+
+            <div class="table-wrapper">
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Waktu</th>
+                            <th>Suhu</th>
+                            <th>Kelembapan Tanah</th>
+                            <th>Kelembapan Udara</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        <tr>
+                            <td>09:00</td>
+                            <td>29.5 °C</td>
+                            <td>65 %</td>
+                            <td>78 %</td>
+                        </tr>
+
+                        <tr>
+                            <td>10:00</td>
+                            <td>30.0 °C</td>
+                            <td>63 %</td>
+                            <td>77 %</td>
+                        </tr>
+
+                        <tr>
+                            <td>11:00</td>
+                            <td>30.2 °C</td>
+                            <td>61 %</td>
+                            <td>76 %</td>
+                        </tr>
+
+                        <tr>
+                            <td>12:00</td>
+                            <td>31.0 °C</td>
+                            <td>60 %</td>
+                            <td>75 %</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+            </div>
         </div>
 
         <div class="status">
