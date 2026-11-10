@@ -15,6 +15,57 @@ from django.db import models
 from django.utils import timezone
 
 
+class Device(models.Model):
+    """Perangkat ESP32 dan status koneksi terakhirnya."""
+
+    STATUS_ONLINE = "online"
+    STATUS_OFFLINE = "offline"
+    STATUS_CHOICES = ((STATUS_ONLINE, "Online"), (STATUS_OFFLINE, "Offline"))
+
+    device_id = models.CharField(primary_key=True, max_length=100)
+    status_koneksi = models.CharField(
+        max_length=7, choices=STATUS_CHOICES, default=STATUS_OFFLINE
+    )
+
+    class Meta:
+        ordering = ["device_id"]
+
+    def __str__(self):
+        return self.device_id
+
+
+class DataWeather(models.Model):
+    """Snapshot weather terbaru dari satu perangkat."""
+
+    device = models.ForeignKey(Device, on_delete=models.CASCADE, related_name="weather_data")
+    temp = models.FloatField(null=True, blank=True)
+    rh = models.FloatField(null=True, blank=True)
+    lux = models.FloatField(null=True, blank=True)
+    diperbarui_pada = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["device"], name="unique_weather_per_device")
+        ]
+
+
+class DataSoil(models.Model):
+    """Snapshot ADC terbaru untuk setiap address node soil."""
+
+    device = models.ForeignKey(Device, on_delete=models.CASCADE, related_name="soil_data")
+    address = models.PositiveIntegerField()
+    adc = models.PositiveIntegerField(null=True, blank=True)
+    diperbarui_pada = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["device", "address"], name="unique_soil_node_per_device"
+            )
+        ]
+        ordering = ["address"]
+
+
 class ControlBox(models.Model):
     """
     Merepresentasikan perangkat Control Box (ESP32 gateway IoT) di lapangan.
