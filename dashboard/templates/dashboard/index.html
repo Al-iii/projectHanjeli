@@ -76,7 +76,11 @@
             color: #245b3c;
         }
 
-        /* Sensor Monitoring History */
+        .unit {
+            font-size: 14px;
+            color: #78857c;
+        }
+
         .sensor-history {
             background: white;
             padding: 25px;
@@ -129,6 +133,25 @@
             background: white;
             padding: 25px;
             border-radius: 12px;
+            box-shadow: 0 3px 12px #0000000a;
+        }
+
+        .status h3 {
+            color: #193f2e;
+            margin-bottom: 20px;
+        }
+
+        .status p {
+            margin-bottom: 15px;
+            color: #555;
+        }
+
+        .active {
+            color: #16834a;
+        }
+
+        .inactive {
+            color: #c17a25;
         }
 
         @media (max-width: 900px) {
@@ -157,7 +180,7 @@
 <body>
 
     <div class="sidebar">
-        <h2>🌱 HANJELI</h2>
+        <h2>HANJELI</h2>
         <p>Dashboard</p>
         <p>Monitoring Sensor</p>
         <p>Prediksi Pertumbuhan</p>
@@ -175,24 +198,58 @@
 
         <div class="cards">
 
+            <!-- Temperature -->
             <div class="card">
-                <p>🌡️ Suhu</p>
-                <h2>29.5 °C</h2>
+                <p>Suhu</p>
+                <h2>
+                    {% if telemetry and telemetry.temperature != None %}
+                        {{ telemetry.temperature|floatformat:1 }}
+                    {% else %}
+                        --
+                    {% endif %}
+                    <span class="unit">°C</span>
+                </h2>
             </div>
 
+            <!-- Soil ADC -->
             <div class="card">
-                <p>💧 Kelembapan Tanah</p>
-                <h2>65 %</h2>
+                <p>Sensor Tanah (ADC)</p>
+                <h2>
+                    {% if telemetry and telemetry.soil_adc != None %}
+                        {{ telemetry.soil_adc }}
+                    {% else %}
+                        --
+                    {% endif %}
+                </h2>
             </div>
 
+            <!-- Air Humidity -->
             <div class="card">
-                <p>☁️ Kelembapan Udara</p>
-                <h2>78 %</h2>
+                <p>Kelembapan Udara</p>
+                <h2>
+                    {% if telemetry and telemetry.air_humidity != None %}
+                        {{ telemetry.air_humidity|floatformat:1 }}
+                    {% else %}
+                        --
+                    {% endif %}
+                    <span class="unit">%</span>
+                </h2>
             </div>
 
+            <!-- Irrigation Status -->
             <div class="card">
-                <p>🌱 Status Penyiraman</p>
-                <h2>OFF</h2>
+                <p>Status Penyiraman</p>
+                <h2>
+                    {% if telemetry and telemetry.pump != None and telemetry.valve != None %}
+                        {% if telemetry.pump or telemetry.valve %}
+                            <span class="active">ON</span>
+                        {% else %}
+                            <span class="inactive">OFF</span>
+                        {% endif %}
+                    {% else %}
+                        --
+                    {% endif %}
+                </h2>
             </div>
 
         </div>
@@ -203,7 +260,7 @@
             <h3>Sensor Monitoring History</h3>
 
             <p class="history-description">
-                Riwayat pembacaan sensor lingkungan tanaman Hanjeli
+                Riwayat 10 pembacaan sensor terakhir
             </p>
 
             <div class="table-wrapper">
@@ -212,52 +269,116 @@
                     <thead>
                         <tr>
                             <th>Waktu</th>
-                            <th>Suhu</th>
-                            <th>Kelembapan Tanah</th>
-                            <th>Kelembapan Udara</th>
+                            <th>Suhu (°C)</th>
+                            <th>Sensor Tanah (ADC)</th>
+                            <th>Kelembapan Udara (%)</th>
                         </tr>
                     </thead>
 
                     <tbody>
+
+                        {% for item in history %}
                         <tr>
-                            <td>09:00</td>
-                            <td>29.5 °C</td>
-                            <td>65 %</td>
-                            <td>78 %</td>
+                            <td>{{ item.received_at|date:"d/m/Y H:i:s" }}</td>
+
+                            <td>
+                                {% if item.temperature != None %}
+                                    {{ item.temperature|floatformat:1 }}
+                                {% else %}
+                                    --
+                                {% endif %}
+                            </td>
+
+                            <td>
+                                {% if item.soil_adc != None %}
+                                    {{ item.soil_adc }}
+                                {% else %}
+                                    --
+                                {% endif %}
+                            </td>
+
+                            <td>
+                                {% if item.air_humidity != None %}
+                                    {{ item.air_humidity|floatformat:1 }}
+                                {% else %}
+                                    --
+                                {% endif %}
+                            </td>
                         </tr>
 
+                        {% empty %}
                         <tr>
-                            <td>10:00</td>
-                            <td>30.0 °C</td>
-                            <td>63 %</td>
-                            <td>77 %</td>
+                            <td colspan="4">Belum ada data telemetry.</td>
                         </tr>
+                        {% endfor %}
 
-                        <tr>
-                            <td>11:00</td>
-                            <td>30.2 °C</td>
-                            <td>61 %</td>
-                            <td>76 %</td>
-                        </tr>
-
-                        <tr>
-                            <td>12:00</td>
-                            <td>31.0 °C</td>
-                            <td>60 %</td>
-                            <td>75 %</td>
-                        </tr>
                     </tbody>
                 </table>
 
             </div>
         </div>
 
+        <!-- System Information -->
         <div class="status">
+
             <h3>System Information</h3>
-            <br>
-            <p>Status Sistem: Menunggu koneksi sensor</p>
-            <br>
-            <p>Status Backend: Aktif</p>
+
+            {% if telemetry %}
+
+                <p>
+                    Device ID: {{ telemetry.device_id }}
+                </p>
+
+                <p>
+                    Status Perangkat: {{ telemetry.status|default:"-" }}
+                </p>
+
+                <p>
+                    Kondisi Sistem: {{ telemetry.state|default:"-" }}
+                </p>
+
+                <p>
+                    Status Pompa:
+                    {% if telemetry.pump == None %}
+                        --
+                    {% elif telemetry.pump %}
+                        <span class="active">ON</span>
+                    {% else %}
+                        <span class="inactive">OFF</span>
+                    {% endif %}
+                </p>
+
+                <p>
+                    Status Valve:
+                    {% if telemetry.valve == None %}
+                        --
+                    {% elif telemetry.valve %}
+                        <span class="active">ON</span>
+                    {% else %}
+                        <span class="inactive">OFF</span>
+                    {% endif %}
+                </p>
+
+                <p>
+                    Aliran Air:
+                    {% if telemetry.flow_lpm != None %}
+                        {{ telemetry.flow_lpm }} L/min
+                    {% else %}
+                        --
+                    {% endif %}
+                </p>
+
+                <p>
+                    Terakhir Diperbarui:
+                    {{ telemetry.received_at|date:"d/m/Y H:i:s" }}
+                </p>
+
+            {% else %}
+
+                <p>Belum ada data telemetry yang diterima.</p>
+
+            {% endif %}
+
         </div>
 
     </div>
