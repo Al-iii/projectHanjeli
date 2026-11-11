@@ -1,0 +1,6 @@
+path: E:/kuliah/projectHanjeli/dataset_hanjeli
+train: images/train
+val: images/val
+
+names:
+  0: hanjeli
