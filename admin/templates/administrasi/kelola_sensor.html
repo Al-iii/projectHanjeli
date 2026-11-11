@@ -1,866 +1,225 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{{ judul_halaman }} — Smart Agriculture Hanjeli</title>
-
-  <!-- Bootstrap 5.3 CSS -->
-  <link
-    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
-    rel="stylesheet"
-    integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
-    crossorigin="anonymous"
-  />
-  <!-- Bootstrap Icons -->
-  <link
-    href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
-    rel="stylesheet"
-  />
-
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
   <style>
-    :root {
-      --sidebar-width   : 260px;
-      --sidebar-bg      : #1a2e1a;
-      --sidebar-hover   : #2d4a2d;
-      --header-height   : 60px;
-      --accent-green    : #4CAF50;
-      --accent-green-dk : #388E3C;
-    }
-
-    /* ===== GLOBAL ===== */
-    body {
-      background-color: #f4f7f4;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    }
-
-    /* ===== SIDEBAR ===== */
-    #sidebar {
-      width: var(--sidebar-width);
-      min-height: 100vh;
-      background-color: var(--sidebar-bg);
-      position: fixed;
-      top: 0;
-      left: 0;
-      z-index: 100;
-      overflow-x: hidden;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .sidebar-brand {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 18px 20px;
-      border-bottom: 1px solid rgba(255,255,255,.1);
-      flex-shrink: 0;
-    }
-
-    .sidebar-brand .brand-icon {
-      font-size: 1.6rem;
-      color: var(--accent-green);
-    }
-
-    .sidebar-brand .brand-text {
-      color: #fff;
-      font-weight: 700;
-      font-size: .95rem;
-      line-height: 1.2;
-    }
-
-    .sidebar-brand .brand-text small {
-      color: rgba(255,255,255,.55);
-      font-weight: 400;
-      font-size: .75rem;
-    }
-
-    .nav-label {
-      color: rgba(255,255,255,.4);
-      font-size: .7rem;
-      font-weight: 700;
-      letter-spacing: 1.2px;
-      text-transform: uppercase;
-      padding: 18px 20px 6px;
-      display: block;
-    }
-
-    /* Menu item utama */
-    .sidebar-nav-link {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      color: rgba(255,255,255,.75);
-      padding: 10px 20px;
-      font-size: .88rem;
-      font-weight: 500;
-      border-left: 3px solid transparent;
-      transition: background .18s, border-color .18s, color .18s;
-      text-decoration: none;
-      cursor: pointer;
-    }
-
-    .sidebar-nav-link:hover,
-    .sidebar-nav-link[aria-expanded="true"] {
-      background-color: var(--sidebar-hover);
-      color: #fff;
-      border-left-color: var(--accent-green);
-    }
-
-    .sidebar-nav-link .nav-icon {
-      font-size: 1.1rem;
-      width: 20px;
-      text-align: center;
-      flex-shrink: 0;
-    }
-
-    /* Sub-menu */
-    .nav-submenu {
-      background-color: rgba(0,0,0,.2);
-      list-style: none;
-      padding: 4px 0;
-      margin: 0;
-    }
-
-    .nav-submenu .submenu-link {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      color: rgba(255,255,255,.6);
-      padding: 8px 20px 8px 50px;
-      font-size: .83rem;
-      border-left: 3px solid transparent;
-      transition: background .18s, color .18s, border-color .18s;
-      text-decoration: none;
-    }
-
-    .nav-submenu .submenu-link:hover {
-      background-color: var(--sidebar-hover);
-      color: #fff;
-      border-left-color: var(--accent-green);
-    }
-
-    .nav-submenu .submenu-link.active {
-      color: #fff;
-      background-color: rgba(76,175,80,.2);
-      border-left-color: var(--accent-green);
-      font-weight: 600;
-    }
-
-    .sidebar-footer {
-      margin-top: auto;
-      padding: 12px 16px;
-      border-top: 1px solid rgba(255,255,255,.1);
-    }
-
-    .sidebar-footer a {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      color: rgba(255,255,255,.45);
-      font-size: .8rem;
-      text-decoration: none;
-      padding: 6px 8px;
-      border-radius: 6px;
-      transition: background .18s, color .18s;
-    }
-
-    .sidebar-footer a:hover {
-      background-color: var(--sidebar-hover);
-      color: rgba(255,255,255,.8);
-    }
-
-    /* ===== MAIN CONTENT ===== */
-    #main-content {
-      margin-left: var(--sidebar-width);
-      min-height: 100vh;
-    }
-
-    /* Topbar */
-    .topbar {
-      height: var(--header-height);
-      background-color: #fff;
-      border-bottom: 1px solid #e2e8f0;
-      display: flex;
-      align-items: center;
-      padding: 0 24px;
-      position: sticky;
-      top: 0;
-      z-index: 99;
-      box-shadow: 0 1px 4px rgba(0,0,0,.06);
-    }
-
-    .topbar .breadcrumb {
-      margin: 0;
-      font-size: .83rem;
-    }
-
-    .page-content {
-      padding: 24px;
-    }
-
-    .page-title {
-      font-size: 1.4rem;
-      font-weight: 700;
-      color: #1a2e1a;
-      letter-spacing: .5px;
-    }
-
-    /* ===== STAT CARDS ===== */
-    .stat-card {
-      border: none;
-      border-radius: 12px;
-      box-shadow: 0 2px 10px rgba(0,0,0,.07);
-      transition: transform .2s;
-    }
-
-    .stat-card:hover { transform: translateY(-2px); }
-
-    .stat-icon {
-      width: 48px;
-      height: 48px;
-      border-radius: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.4rem;
-      flex-shrink: 0;
-    }
-
-    /* ===== TABLE ===== */
-    .table-card {
-      border: none;
-      border-radius: 12px;
-      box-shadow: 0 2px 10px rgba(0,0,0,.07);
-      overflow: hidden;
-    }
-
-    .table-card .card-header {
-      background-color: #fff;
-      border-bottom: 1px solid #e9ecef;
-      padding: 14px 20px;
-    }
-
-    .table thead th {
-      background-color: #f8faf8;
-      color: #495057;
-      font-size: .78rem;
-      font-weight: 600;
-      letter-spacing: .6px;
-      text-transform: uppercase;
-      border-bottom: 2px solid #dee2e6;
-      white-space: nowrap;
-      padding: 12px 16px;
-    }
-
-    .table tbody td {
-      padding: 11px 16px;
-      vertical-align: middle;
-      font-size: .88rem;
-      color: #344054;
-    }
-
-    .table tbody tr:hover { background-color: #f0faf0; }
-
-    /* ===== BADGES STATUS ===== */
-    .badge-online {
-      background-color: #d1fae5;
-      color: #065f46;
-      font-size: .75rem;
-      font-weight: 600;
-      padding: 4px 10px;
-      border-radius: 20px;
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-    }
-
-    .badge-online::before {
-      content: '';
-      width: 7px;
-      height: 7px;
-      border-radius: 50%;
-      background-color: #10b981;
-      display: inline-block;
-      animation: pulse-green 2s infinite;
-    }
-
-    .badge-offline {
-      background-color: #fee2e2;
-      color: #991b1b;
-      font-size: .75rem;
-      font-weight: 600;
-      padding: 4px 10px;
-      border-radius: 20px;
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-    }
-
-    .badge-offline::before {
-      content: '';
-      width: 7px;
-      height: 7px;
-      border-radius: 50%;
-      background-color: #ef4444;
-      display: inline-block;
-    }
-
-    @keyframes pulse-green {
-      0%, 100% { opacity: 1; }
-      50%       { opacity: .3; }
-    }
-
-    .badge-tipe-lingkungan {
-      background-color: #dbeafe;
-      color: #1e40af;
-      font-size: .72rem;
-      font-weight: 600;
-      padding: 3px 9px;
-      border-radius: 20px;
-    }
-
-    .badge-tipe-soil {
-      background-color: #fef3c7;
-      color: #92400e;
-      font-size: .72rem;
-      font-weight: 600;
-      padding: 3px 9px;
-      border-radius: 20px;
-    }
-
-    /* ===== TOMBOL ===== */
-    .btn-tambah {
-      background-color: var(--accent-green);
-      border-color: var(--accent-green);
-      color: #fff;
-      font-weight: 600;
-      border-radius: 8px;
-      padding: 8px 16px;
-      font-size: .88rem;
-    }
-
-    .btn-tambah:hover {
-      background-color: var(--accent-green-dk);
-      border-color: var(--accent-green-dk);
-      color: #fff;
-    }
-
-    .aksi-link {
-      font-size: .82rem;
-      font-weight: 500;
-      text-decoration: none;
-    }
-
-    .aksi-link:hover { text-decoration: underline; }
-
-    /* ===== RESPONSIF ===== */
-    @media (max-width: 991.98px) {
-      #sidebar      { width: 0; }
-      #main-content { margin-left: 0; }
-    }
-
-    /* Helper utility classes (pengganti inline style) */
-    .topbar-avatar {
-      width: 32px;
-      height: 32px;
-    }
-
-    .table-search-input {
-      width: 200px;
-    }
-
-    .table-filter-select {
-      width: 140px;
-    }
-
-    .col-no {
-      width: 50px;
-    }
-
-    .col-aksi {
-      width: 120px;
-    }
+    body { background: #f3f6f4; color: #24332b; }
+    #sidebar { min-height: 100vh; background: #173b2b; }
+    #sidebar a { color: rgba(255,255,255,.76); text-decoration: none; transition: .18s ease; }
+    #sidebar a:hover, #sidebar a.active { background: #2d7650; color: #fff; }
+    #main-content { min-height: 100vh; }
+    .summary-card, .table-card { border: 0; border-radius: 1rem; box-shadow: 0 .5rem 1.5rem rgba(28, 55, 39, .08); }
+    .summary-card { overflow: hidden; }
+    .summary-icon { width: 3rem; height: 3rem; display: grid; place-items: center; border-radius: .9rem; font-size: 1.35rem; }
+    .icon-total { background: #e7f0ff; color: #3466c2; }
+    .icon-online { background: #dcf5e8; color: #198754; }
+    .icon-offline { background: #fce8e8; color: #c44545; }
+    .sensor-table thead th { padding: .95rem 1rem; color: #617067; font-size: .76rem; letter-spacing: .045em; text-transform: uppercase; white-space: nowrap; border-bottom-width: 1px; }
+    .sensor-table tbody td { padding: 1rem; vertical-align: middle; }
+    .sensor-table tbody tr { transition: background-color .16s ease; }
+    .sensor-table tbody tr:hover { background: #f1f8f3; }
+    .status-badge { display: inline-flex; align-items: center; gap: .4rem; padding: .4rem .7rem; border-radius: 999px; font-size: .78rem; font-weight: 700; text-transform: capitalize; }
+    .status-online { background: #d9f4e5; color: #137341; }
+    .status-offline { background: #e9ecef; color: #58616a; }
+    .soil-chip { display: inline-block; margin: .12rem .15rem .12rem 0; padding: .28rem .5rem; border: 1px solid #dce5de; border-radius: .5rem; background: #f7faf8; color: #3e5145; font-size: .78rem; white-space: nowrap; }
+    .metric-icon { margin-right: .35rem; }
+    @media (max-width: 767.98px) { #sidebar { min-height: auto; } }
   </style>
 </head>
-
 <body>
+  <div class="container-fluid">
+    <div class="row">
+      <!-- Sidebar navigasi tetap menjadi kerangka utama halaman. -->
+      <nav id="sidebar" class="col-md-3 col-lg-2 p-3">
+        <div class="text-white fw-bold fs-5 mb-4"><i class="bi bi-flower2 me-2 text-success"></i>Smart Agriculture</div>
+        <div class="text-uppercase text-white-50 small mb-2">Modul Administrasi</div>
+        <div class="nav flex-column gap-1">
+          <a href="{% url 'administrasi:kelola_sensor' %}" class="rounded px-3 py-2 active"><i class="bi bi-cpu-fill me-2"></i>Kelola Sensor</a>
+          <a href="#" class="rounded px-3 py-2"><i class="bi bi-box-seam me-2"></i>Kelola Pot</a>
+          <a href="#" class="rounded px-3 py-2"><i class="bi bi-droplet-fill me-2"></i>Kelola Penyiraman</a>
+        </div>
+      </nav>
 
-<!-- ==============================================
-     SIDEBAR KIRI
-     ============================================== -->
-<nav id="sidebar">
+      <main id="main-content" class="col-md-9 col-lg-10 p-3 p-lg-4" data-json-url="{% url 'administrasi:data_sensor_json' %}">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+          <div>
+            <h1 class="h3 fw-bold mb-1">Kelola Sensor</h1>
+            <p class="text-secondary mb-0">Status perangkat dan pembacaan sensor terbaru.</p>
+          </div>
+          <button class="btn btn-success rounded-3 px-3" type="button"><i class="bi bi-plus-lg me-1"></i>Tambah Perangkat</button>
+        </div>
 
-  <!-- Brand -->
-  <div class="sidebar-brand">
-    <span class="brand-icon"><i class="bi bi-flower2"></i></span>
-    <div class="brand-text">
-      Smart Agriculture
-      <br><small>Hanjeli Project</small>
+        <!-- Ringkasan akan ikut disegarkan oleh endpoint JSON. -->
+        <div class="row g-3 mb-4">
+          <div class="col-sm-4">
+            <div class="card summary-card h-100"><div class="card-body d-flex align-items-center gap-3">
+              <div class="summary-icon icon-total"><i class="bi bi-hdd-network-fill"></i></div>
+              <div><div class="small text-secondary">Total Perangkat</div><div id="summary-total" class="fs-3 fw-bold">{{ total_sensor }}</div></div>
+            </div></div>
+          </div>
+          <div class="col-sm-4">
+            <div class="card summary-card h-100"><div class="card-body d-flex align-items-center gap-3">
+              <div class="summary-icon icon-online"><i class="bi bi-wifi"></i></div>
+              <div><div class="small text-secondary">Online</div><div id="summary-online" class="fs-3 fw-bold text-success">{{ total_online }}</div></div>
+            </div></div>
+          </div>
+          <div class="col-sm-4">
+            <div class="card summary-card h-100"><div class="card-body d-flex align-items-center gap-3">
+              <div class="summary-icon icon-offline"><i class="bi bi-wifi-off"></i></div>
+              <div><div class="small text-secondary">Offline</div><div id="summary-offline" class="fs-3 fw-bold text-secondary">{{ total_offline }}</div></div>
+            </div></div>
+          </div>
+        </div>
+
+        <section class="card table-card">
+          <div class="card-header bg-white border-0 rounded-top-4 px-3 px-lg-4 pt-4 pb-3 d-flex flex-wrap justify-content-between align-items-center gap-2">
+            <div><h2 class="h5 fw-bold mb-1">Daftar Perangkat</h2><span class="small text-secondary">Pembaruan otomatis setiap 5 detik</span></div>
+            <span id="table-count" class="badge text-bg-light border text-secondary">{{ total_sensor }} perangkat</span>
+          </div>
+          <div class="table-responsive">
+            <table class="table table-hover sensor-table mb-0">
+              <thead class="table-light"><tr>
+                <th>No</th><th>Device ID</th><th>Status</th>
+                <th><i class="bi bi-thermometer-half text-danger metric-icon"></i>Suhu (°C)</th>
+                <th><i class="bi bi-droplet-half text-primary metric-icon"></i>Kelembaban (%)</th>
+                <th><i class="bi bi-leaf text-success metric-icon"></i>ADC Tanah</th>
+                <th>Aksi</th>
+              </tr></thead>
+              <tbody id="device-table-body">
+                {% for device in devices %}
+                <tr>
+                  <td>{{ forloop.counter }}</td>
+                  <td><code class="text-dark fw-semibold">{{ device.device_id }}</code></td>
+                  <td>{% if device.status_koneksi == 'online' %}<span class="status-badge status-online"><i class="bi bi-circle-fill small"></i>online</span>{% else %}<span class="status-badge status-offline"><i class="bi bi-circle-fill small"></i>offline</span>{% endif %}</td>
+                  <td>{% if device.weather and device.weather.temp is not None %}{{ device.weather.temp|floatformat:1 }}{% else %}<span class="text-secondary">—</span>{% endif %}</td>
+                  <td>{% if device.weather and device.weather.rh is not None %}{{ device.weather.rh|floatformat:1 }}{% else %}<span class="text-secondary">—</span>{% endif %}</td>
+                  <td>{% for soil in device.soil %}<span class="soil-chip"><i class="bi bi-geo me-1"></i>{{ soil.address }}: {% if soil.adc is not None %}{{ soil.adc }}{% else %}—{% endif %}</span>{% empty %}<span class="text-secondary">—</span>{% endfor %}</td>
+                  <td><a href="#" class="link-primary text-decoration-none me-2">Edit</a><a href="#" class="link-danger text-decoration-none">Hapus</a></td>
+                </tr>
+                {% empty %}<tr><td colspan="7" class="text-center text-secondary py-5"><i class="bi bi-inbox fs-3 d-block mb-2"></i>Belum ada data perangkat.</td></tr>{% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </section>
+        <div id="refresh-status" class="small text-secondary mt-3" role="status" aria-live="polite"></div>
+      </main>
     </div>
   </div>
 
-  <!-- Navigasi -->
-  <ul class="list-unstyled mb-0">
+  <!-- Polling terisolasi: bangun isi tabel dengan DOM API agar nilai dari perangkat tidak menjadi HTML. -->
+  <script>
+    (() => {
+      const main = document.getElementById("main-content");
+      const tableBody = document.getElementById("device-table-body");
+      const refreshStatus = document.getElementById("refresh-status");
+      const refreshInterval = 5000;
 
-    <li><span class="nav-label">Administrasi</span></li>
+      const setText = (element, value) => {
+        element.textContent = value;
+      };
 
-    <!-- Modul Administrasi (collapsible) -->
-    <li>
-      <a
-        class="sidebar-nav-link"
-        data-bs-toggle="collapse"
-        href="#menu-administrasi"
-        role="button"
-        aria-expanded="true"
-        aria-controls="menu-administrasi"
-      >
-        <i class="bi bi-grid-1x2-fill nav-icon"></i>
-        <span>Modul Administrasi</span>
-        <i class="bi bi-chevron-down ms-auto small"></i>
-      </a>
+      const makeCell = (row, value, className = "") => {
+        const cell = document.createElement("td");
+        if (className) cell.className = className;
+        cell.textContent = value;
+        row.appendChild(cell);
+        return cell;
+      };
 
-      <ul class="collapse show nav-submenu" id="menu-administrasi">
+      const renderDevices = (devices) => {
+        tableBody.replaceChildren();
 
-        <!-- Kelola Sensor — AKTIF -->
-        <li>
-          <a
-            href="{% url 'administrasi:kelola_sensor' %}"
-            class="submenu-link {% if menu_aktif == 'kelola_sensor' %}active{% endif %}"
-          >
-            <i class="bi bi-cpu-fill"></i>
-            Kelola Sensor
-          </a>
-        </li>
+        if (!devices.length) {
+          const row = document.createElement("tr");
+          const cell = makeCell(row, "Belum ada data perangkat.", "text-center text-secondary py-5");
+          cell.colSpan = 7;
+          tableBody.appendChild(row);
+          return;
+        }
 
-        <!-- Placeholder -->
-        <li>
-          <a href="#" class="submenu-link">
-            <i class="bi bi-box-seam"></i>
-            Kelola Pot
-          </a>
-        </li>
-        <li>
-          <a href="#" class="submenu-link">
-            <i class="bi bi-droplet-fill"></i>
-            Kelola Penyiraman
-          </a>
-        </li>
+        devices.forEach((device, index) => {
+          const row = document.createElement("tr");
+          makeCell(row, String(index + 1));
 
-      </ul>
-    </li>
+          const idCell = document.createElement("td");
+          const idCode = document.createElement("code");
+          idCode.className = "text-dark fw-semibold";
+          idCode.textContent = device.device_id;
+          idCell.appendChild(idCode);
+          row.appendChild(idCell);
 
-    <li><span class="nav-label">Monitoring</span></li>
+          const statusCell = document.createElement("td");
+          const statusBadge = document.createElement("span");
+          const online = device.status_koneksi === "online";
+          statusBadge.className = `status-badge ${online ? "status-online" : "status-offline"}`;
+          const statusIcon = document.createElement("i");
+          statusIcon.className = "bi bi-circle-fill small";
+          statusBadge.append(statusIcon, document.createTextNode(online ? "online" : "offline"));
+          statusCell.appendChild(statusBadge);
+          row.appendChild(statusCell);
 
-    <li>
-      <a href="#" class="sidebar-nav-link">
-        <i class="bi bi-speedometer2 nav-icon"></i>
-        <span>Dashboard</span>
-      </a>
-    </li>
-    <li>
-      <a href="#" class="sidebar-nav-link">
-        <i class="bi bi-graph-up nav-icon"></i>
-        <span>Riwayat Data</span>
-      </a>
-    </li>
+          const weather = device.weather;
+          makeCell(row, weather && weather.temp !== null ? Number(weather.temp).toFixed(1) : "—");
+          makeCell(row, weather && weather.rh !== null ? Number(weather.rh).toFixed(1) : "—");
 
-  </ul>
+          const soilCell = document.createElement("td");
+          if (device.soil && device.soil.length) {
+            device.soil.forEach((node) => {
+              const chip = document.createElement("span");
+              chip.className = "soil-chip";
+              chip.textContent = `${node.address}: ${node.adc === null ? "—" : node.adc}`;
+              soilCell.appendChild(chip);
+            });
+          } else {
+            soilCell.textContent = "—";
+          }
+          row.appendChild(soilCell);
 
-  <!-- Footer sidebar -->
-  <div class="sidebar-footer">
-    <a href="/admin/">
-      <i class="bi bi-shield-lock"></i>
-      Django Admin
-    </a>
-  </div>
+          const actionCell = document.createElement("td");
+          const editLink = document.createElement("a");
+          editLink.href = "#";
+          editLink.className = "link-primary text-decoration-none me-2";
+          editLink.textContent = "Edit";
+          const deleteLink = document.createElement("a");
+          deleteLink.href = "#";
+          deleteLink.className = "link-danger text-decoration-none";
+          deleteLink.textContent = "Hapus";
+          actionCell.append(editLink, deleteLink);
+          row.appendChild(actionCell);
 
-</nav><!-- /sidebar -->
+          tableBody.appendChild(row);
+        });
+      };
 
+      const refreshDashboard = async () => {
+        try {
+          const response = await fetch(main.dataset.jsonUrl, {
+            headers: { "Accept": "application/json" },
+            cache: "no-store"
+          });
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
-<!-- ==============================================
-     KONTEN UTAMA
-     ============================================== -->
-<div id="main-content">
+          const data = await response.json();
+          renderDevices(data.devices);
+          setText(document.getElementById("summary-total"), data.summary.total);
+          setText(document.getElementById("summary-online"), data.summary.online);
+          setText(document.getElementById("summary-offline"), data.summary.offline);
+          setText(document.getElementById("table-count"), `${data.summary.total} perangkat`);
+          setText(refreshStatus, `Data diperbarui ${new Date().toLocaleTimeString("id-ID")}`);
+        } catch (error) {
+          console.error("Gagal memperbarui data sensor:", error);
+          setText(refreshStatus, "Pembaruan gagal. Mencoba kembali secara otomatis.");
+        } finally {
+          window.setTimeout(refreshDashboard, refreshInterval);
+        }
+      };
 
-  <!-- Topbar -->
-  <div class="topbar">
-    <nav aria-label="breadcrumb">
-      <ol class="breadcrumb">
-        <li class="breadcrumb-item text-muted">
-          <i class="bi bi-house-fill me-1"></i>Beranda
-        </li>
-        <li class="breadcrumb-item text-muted">Modul Administrasi</li>
-        <li class="breadcrumb-item active fw-semibold" aria-current="page">
-          Kelola Sensor
-        </li>
-      </ol>
-    </nav>
-
-    <div class="ms-auto d-flex align-items-center gap-3">
-      <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1 small">
-        <i class="bi bi-wifi me-1"></i>{{ total_online }} Box Online
-      </span>
-      <div class="d-flex align-items-center gap-2">
-        <div class="rounded-circle bg-success d-flex align-items-center justify-content-center topbar-avatar">
-          <i class="bi bi-person-fill text-white small"></i>
-        </div>
-        <span class="small fw-semibold text-muted">Admin</span>
-      </div>
-    </div>
-  </div><!-- /topbar -->
-
-
-  <!-- Konten Halaman -->
-  <div class="page-content">
-
-    <!-- Judul + Tombol -->
-    <div class="d-flex align-items-center justify-content-between mb-4">
-      <div>
-        <h1 class="page-title mb-1">
-          <i class="bi bi-cpu me-2 text-success"></i>KELOLA SENSOR
-        </h1>
-        <p class="text-muted small mb-0">
-          Manajemen perangkat sensor yang terhubung ke sistem Smart Agriculture Hanjeli.
-        </p>
-      </div>
-      <button class="btn btn-tambah" data-bs-toggle="modal" data-bs-target="#modalTambahSensor">
-        <i class="bi bi-plus-lg me-1"></i> Tambah Sensor / Box Baru
-      </button>
-    </div>
-
-
-    <!-- Kartu Statistik -->
-    <div class="row g-3 mb-4">
-
-      <div class="col-sm-6 col-xl-3">
-        <div class="card stat-card h-100">
-          <div class="card-body d-flex align-items-center gap-3">
-            <div class="stat-icon bg-primary bg-opacity-10">
-              <i class="bi bi-cpu-fill text-primary"></i>
-            </div>
-            <div>
-              <div class="text-muted small">Total Sensor</div>
-              <div class="fs-4 fw-bold">{{ total_sensor }}</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="col-sm-6 col-xl-3">
-        <div class="card stat-card h-100">
-          <div class="card-body d-flex align-items-center gap-3">
-            <div class="stat-icon bg-warning bg-opacity-10">
-              <i class="bi bi-hdd-network-fill text-warning"></i>
-            </div>
-            <div>
-              <div class="text-muted small">Control Box</div>
-              <div class="fs-4 fw-bold">{{ total_box }}</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="col-sm-6 col-xl-3">
-        <div class="card stat-card h-100">
-          <div class="card-body d-flex align-items-center gap-3">
-            <div class="stat-icon bg-success bg-opacity-10">
-              <i class="bi bi-wifi text-success"></i>
-            </div>
-            <div>
-              <div class="text-muted small">Box Online</div>
-              <div class="fs-4 fw-bold text-success">{{ total_online }}</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- FIX: gunakan total_offline dari context (bukan filter add di template) -->
-      <div class="col-sm-6 col-xl-3">
-        <div class="card stat-card h-100">
-          <div class="card-body d-flex align-items-center gap-3">
-            <div class="stat-icon bg-danger bg-opacity-10">
-              <i class="bi bi-wifi-off text-danger"></i>
-            </div>
-            <div>
-              <div class="text-muted small">Box Offline</div>
-              <div class="fs-4 fw-bold text-danger">{{ total_offline }}</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-    </div><!-- /Statistik -->
-
-
-    <!-- Tabel Sensor -->
-    <div class="card table-card">
-      <div class="card-header d-flex align-items-center justify-content-between flex-wrap gap-2">
-        <div class="d-flex align-items-center gap-2">
-          <i class="bi bi-table text-success"></i>
-          <span class="fw-semibold">Daftar Sensor Terdaftar</span>
-          <span class="badge bg-secondary">{{ total_sensor }}</span>
-        </div>
-        <!-- Filter client-side -->
-        <div class="d-flex gap-2 flex-wrap">
-          <div class="input-group input-group-sm table-search-input">
-            <span class="input-group-text bg-white border-end-0">
-              <i class="bi bi-search text-muted"></i>
-            </span>
-            <input
-              type="text"
-              class="form-control border-start-0 ps-0"
-              id="inputCariSensor"
-              aria-label="Cari sensor"
-              placeholder="Cari sensor..."
-              onkeyup="filterTabel()"
-            />
-          </div>
-          <select class="form-select form-select-sm table-filter-select" id="filterTipe" onchange="filterTabel()" aria-label="Filter Tipe Sensor" title="Filter Tipe Sensor">
-            <option value="">Semua Tipe</option>
-            <option value="Lingkungan">Lingkungan</option>
-            <option value="Tanah">Tanah (Soil)</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="card-body p-0">
-        <div class="table-responsive">
-          <table class="table table-hover mb-0" id="tabelSensor">
-            <thead>
-              <tr>
-                <th class="col-no">No</th>
-                <th>ID Sensor</th>
-                <th>Nama Sensor</th>
-                <th>Tipe</th>
-                <th>Port</th>
-                <th>Status</th>
-                <th class="col-aksi">Aksi</th>
-              </tr>
-            </thead>
-            <tbody>
-
-              {% if daftar_sensor %}
-                {% for sensor in daftar_sensor %}
-                <tr>
-                  <td class="text-muted">{{ forloop.counter }}</td>
-                  <td><code class="text-dark fw-semibold">{{ sensor.id_sensor }}</code></td>
-                  <td>{{ sensor.nama }}</td>
-                  <td>
-                    {% if sensor.tipe == "Lingkungan" %}
-                      <span class="badge-tipe-lingkungan">
-                        <i class="bi bi-thermometer-half me-1"></i>{{ sensor.tipe }}
-                      </span>
-                    {% else %}
-                      <span class="badge-tipe-soil">
-                        <i class="bi bi-moisture me-1"></i>{{ sensor.tipe }}
-                      </span>
-                    {% endif %}
-                  </td>
-                  <td><code>{{ sensor.port }}</code></td>
-                  <td>
-                    {% if sensor.status == "ONLINE" %}
-                      <span class="badge-online">ONLINE</span>
-                    {% else %}
-                      <span class="badge-offline">OFFLINE</span>
-                    {% endif %}
-                  </td>
-                  <td>
-                    <a href="#" class="aksi-link text-primary me-2">
-                      <i class="bi bi-pencil-square me-1"></i>Edit
-                    </a>
-                    <a href="#" class="aksi-link text-danger"
-                       onclick="return confirm('Yakin ingin menghapus sensor ini?')">
-                      <i class="bi bi-trash3 me-1"></i>Hapus
-                    </a>
-                  </td>
-                </tr>
-                {% endfor %}
-
-              {% else %}
-                <!-- Data dummy (tampil saat database masih kosong) -->
-                <tr>
-                  <td class="text-muted">1</td>
-                  <td><code class="text-dark fw-semibold">SL-001</code></td>
-                  <td>Sensor Lingkungan #1 — Control Box Kebun A</td>
-                  <td><span class="badge-tipe-lingkungan"><i class="bi bi-thermometer-half me-1"></i>Lingkungan</span></td>
-                  <td><code>I2C/OneWire</code></td>
-                  <td><span class="badge-online">ONLINE</span></td>
-                  <td>
-                    <a href="#" class="aksi-link text-primary me-2"><i class="bi bi-pencil-square me-1"></i>Edit</a>
-                    <a href="#" class="aksi-link text-danger" onclick="return confirm('Yakin?')"><i class="bi bi-trash3 me-1"></i>Hapus</a>
-                  </td>
-                </tr>
-                <tr>
-                  <td class="text-muted">2</td>
-                  <td><code class="text-dark fw-semibold">SS-001</code></td>
-                  <td>Soil Sensor #1 — Control Box Kebun A</td>
-                  <td><span class="badge-tipe-soil"><i class="bi bi-moisture me-1"></i>Tanah (Soil)</span></td>
-                  <td><code>ADC-GPIO34/35/32</code></td>
-                  <td><span class="badge-online">ONLINE</span></td>
-                  <td>
-                    <a href="#" class="aksi-link text-primary me-2"><i class="bi bi-pencil-square me-1"></i>Edit</a>
-                    <a href="#" class="aksi-link text-danger" onclick="return confirm('Yakin?')"><i class="bi bi-trash3 me-1"></i>Hapus</a>
-                  </td>
-                </tr>
-                <tr>
-                  <td class="text-muted">3</td>
-                  <td><code class="text-dark fw-semibold">SL-002</code></td>
-                  <td>Sensor Lingkungan #2 — Control Box Kebun B</td>
-                  <td><span class="badge-tipe-lingkungan"><i class="bi bi-thermometer-half me-1"></i>Lingkungan</span></td>
-                  <td><code>I2C/OneWire</code></td>
-                  <td><span class="badge-offline">OFFLINE</span></td>
-                  <td>
-                    <a href="#" class="aksi-link text-primary me-2"><i class="bi bi-pencil-square me-1"></i>Edit</a>
-                    <a href="#" class="aksi-link text-danger" onclick="return confirm('Yakin?')"><i class="bi bi-trash3 me-1"></i>Hapus</a>
-                  </td>
-                </tr>
-              {% endif %}
-
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <!-- Footer tabel -->
-      <div class="card-footer bg-white border-top d-flex align-items-center justify-content-between py-2 px-4">
-        <small class="text-muted">
-          Menampilkan {{ total_sensor }} sensor dari {{ total_sensor }} total.
-        </small>
-        <nav aria-label="Navigasi halaman">
-          <ul class="pagination pagination-sm mb-0">
-            <li class="page-item disabled"><a class="page-link" href="#">&laquo;</a></li>
-            <li class="page-item active"><a class="page-link" href="#">1</a></li>
-            <li class="page-item disabled"><a class="page-link" href="#">&raquo;</a></li>
-          </ul>
-        </nav>
-      </div>
-
-    </div><!-- /table-card -->
-
-  </div><!-- /page-content -->
-</div><!-- /main-content -->
-
-
-<!-- ==============================================
-     MODAL: Tambah Sensor / Box Baru
-     ============================================== -->
-<div class="modal fade" id="modalTambahSensor" tabindex="-1"
-     aria-labelledby="labelModalTambah" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered modal-lg">
-    <div class="modal-content">
-
-      <div class="modal-header">
-        <h5 class="modal-title fw-bold" id="labelModalTambah">
-          <i class="bi bi-plus-circle-fill text-success me-2"></i>
-          Tambah Sensor / Control Box Baru
-        </h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
-      </div>
-
-      <div class="modal-body">
-        <form id="formTambahSensor">
-          {% csrf_token %}
-
-          <h6 class="text-muted text-uppercase small fw-bold mb-3">
-            <i class="bi bi-hdd-network me-1"></i>Informasi Control Box
-          </h6>
-          <div class="row g-3 mb-4">
-            <div class="col-md-6">
-              <label class="form-label small fw-semibold" for="inputMacAddress">
-                MAC Address <span class="text-danger">*</span>
-              </label>
-              <input type="text" class="form-control form-control-sm"
-                     id="inputMacAddress"
-                     name="mac_address"
-                     placeholder="AA:BB:CC:DD:EE:FF"
-                     pattern="([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}" />
-              <div class="form-text">Format: 6 kelompok hex dipisah ':'</div>
-            </div>
-            <div class="col-md-6">
-              <label class="form-label small fw-semibold" for="inputNamaPerangkat">
-                Nama Perangkat <span class="text-danger">*</span>
-              </label>
-              <input type="text" class="form-control form-control-sm"
-                     id="inputNamaPerangkat"
-                     name="nama"
-                     placeholder="mis. Control Box Kebun Blok A" />
-            </div>
-            <div class="col-12">
-              <label class="form-label small fw-semibold" for="inputLokasiPerangkat">Lokasi</label>
-              <input type="text" class="form-control form-control-sm"
-                     id="inputLokasiPerangkat"
-                     name="lokasi"
-                     placeholder="mis. Kebun Blok A, Baris 3" />
-            </div>
-          </div>
-
-          <hr class="text-muted" />
-
-          <h6 class="text-muted text-uppercase small fw-bold mb-3">
-            <i class="bi bi-cpu me-1"></i>Jenis Sensor
-          </h6>
-          <div class="row g-3">
-            <div class="col-md-6">
-              <label class="form-label small fw-semibold" for="selectTipeSensor">Tipe Sensor</label>
-              <select class="form-select form-select-sm" name="tipe_sensor" id="selectTipeSensor" title="Pilih tipe sensor" aria-label="Pilih tipe sensor">
-                <option value="" disabled selected>— Pilih tipe sensor —</option>
-                <option value="lingkungan">Sensor Lingkungan (Suhu + Cahaya)</option>
-                <option value="soil">Soil Sensor (Kelembaban Tanah)</option>
-              </select>
-            </div>
-            <div class="col-md-6">
-              <label class="form-label small fw-semibold" for="inputPort">Port / Pin</label>
-              <input type="text" class="form-control form-control-sm"
-                     id="inputPort"
-                     name="port"
-                     placeholder="mis. I2C, GPIO34, COM3" />
-            </div>
-          </div>
-
-        </form>
-      </div>
-
-      <div class="modal-footer">
-        <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">
-          Batal
-        </button>
-        <button type="submit" form="formTambahSensor" class="btn btn-sm btn-tambah">
-          <i class="bi bi-floppy-fill me-1"></i> Simpan
-        </button>
-      </div>
-
-    </div>
-  </div>
-</div><!-- /modal -->
-
-
-<!-- Bootstrap 5.3 JS Bundle -->
-<script
-  src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
-  integrity="sha384-YvpcrYf0tY3lHB60NNkmXc4s9bIOgUxi8T/jzmCJP4c3L5OuMBtbcLBAxMcfRMrD"
-  crossorigin="anonymous">
-</script>
-
-<script>
-  /**
-   * filterTabel()
-   * Filter baris tabel secara client-side berdasarkan input teks dan tipe.
-   */
-  function filterTabel() {
-    const kataCari  = document.getElementById('inputCariSensor').value.toLowerCase();
-    const tipeDipilih = document.getElementById('filterTipe').value.toLowerCase();
-    const semuaBaris  = document.querySelectorAll('#tabelSensor tbody tr');
-
-    semuaBaris.forEach(function(baris) {
-      const teks       = baris.textContent.toLowerCase();
-      const kolumTipe  = baris.cells[3] ? baris.cells[3].textContent.toLowerCase() : '';
-      const cocokCari  = teks.includes(kataCari);
-      const cocokTipe  = tipeDipilih === '' || kolumTipe.includes(tipeDipilih);
-      baris.style.display = (cocokCari && cocokTipe) ? '' : 'none';
-    });
-  }
-</script>
-
+      refreshDashboard();
+    })();
+  </script>
 </body>
 </html>
