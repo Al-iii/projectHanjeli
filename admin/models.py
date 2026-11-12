@@ -34,6 +34,42 @@ class Device(models.Model):
         return self.device_id
 
 
+class Pot(models.Model):
+    """Data pot dan tahap pertumbuhan tanaman yang ditanam."""
+
+    FASE_BIBIT = "Bibit"
+    FASE_VEGETATIF = "Vegetatif"
+    FASE_GENERATIF = "Generatif"
+    FASE_PANEN = "Panen"
+    FASE_PERTUMBUHAN_CHOICES = (
+        (FASE_BIBIT, "Bibit"),
+        (FASE_VEGETATIF, "Vegetatif"),
+        (FASE_GENERATIF, "Generatif"),
+        (FASE_PANEN, "Panen"),
+    )
+
+    kode_pot = models.CharField(max_length=20, unique=True, primary_key=True)
+    jenis_tanaman = models.CharField(max_length=100)
+    tanggal_tanam = models.DateField()
+    fase_pertumbuhan = models.CharField(max_length=20, choices=FASE_PERTUMBUHAN_CHOICES)
+    device_terpasang = models.ForeignKey(
+        Device,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="pots",
+    )
+    keterangan = models.TextField(blank=True)
+
+    class Meta:
+        ordering = ["kode_pot"]
+        verbose_name = "Pot"
+        verbose_name_plural = "Pot"
+
+    def __str__(self):
+        return f"{self.kode_pot} - {self.jenis_tanaman}"
+
+
 class DataWeather(models.Model):
     """Snapshot weather terbaru dari satu perangkat."""
 

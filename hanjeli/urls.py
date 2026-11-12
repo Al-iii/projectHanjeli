@@ -9,14 +9,11 @@ Routing utama:
 
 from django.contrib import admin
 from django.urls import include, path
-from django.views.generic import RedirectView
+from admin.views import dashboard_main
 
 urlpatterns = [
-    # Redirect root "/" ke halaman utama Kelola Sensor
-    path(
-        "",
-        RedirectView.as_view(pattern_name="administrasi:kelola_sensor", permanent=False),
-    ),
+    # Landing page pada root proyek.
+    path("", dashboard_main, name="dashboard_main"),
 
     # Django built-in admin panel
     path("admin/", admin.site.urls),

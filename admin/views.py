@@ -83,3 +83,64 @@ def data_sensor_json(request):
         },
     }
     return JsonResponse(payload)
+
+
+# CRUD Pot ditambahkan terpisah agar view sensor dan endpoint MQTT tetap utuh.
+from django.shortcuts import get_object_or_404, redirect  # noqa: E402
+
+from .forms import PotForm  # noqa: E402
+from .models import Pot  # noqa: E402
+
+
+def pot_list(request):
+    """Tampilkan seluruh pot dengan perangkat terkait."""
+    pots = Pot.objects.select_related("device_terpasang").all()
+    return render(request, "administrasi/kelola_pot.html", {"pots": pots})
+
+
+def pot_create(request):
+    """Buat pot baru dari form yang valid."""
+    form = PotForm(request.POST if request.method == "POST" else None)
+    if request.method == "POST" and form.is_valid():
+        form.save()
+        return redirect("administrasi:pot_list")
+    return render(
+        request,
+        "administrasi/pot_form.html",
+        {"form": form, "judul": "Tambah Pot"},
+    )
+
+
+def pot_update(request, kode_pot):
+    """Edit data pot berdasarkan primary key kode_pot."""
+    pot = get_object_or_404(Pot, pk=kode_pot)
+    form = PotForm(
+        request.POST if request.method == "POST" else None,
+        instance=pot,
+    )
+    if request.method == "POST" and form.is_valid():
+        form.save()
+        return redirect("administrasi:pot_list")
+    return render(
+        request,
+        "administrasi/pot_form.html",
+        {"form": form, "judul": "Edit Pot", "pot": pot},
+    )
+
+
+def pot_delete(request, kode_pot):
+    """Hapus pot hanya setelah konfirmasi dikirim dengan POST."""
+    pot = get_object_or_404(Pot, pk=kode_pot)
+    if request.method == "POST":
+        pot.delete()
+        return redirect("administrasi:pot_list")
+    return render(
+        request,
+        "administrasi/pot_confirm_delete.html",
+        {"pot": pot},
+    )
+
+
+def dashboard_main(request):
+    """Render landing page utama Smart Agriculture."""
+    return render(request, "administrasi/dashboard.html")
