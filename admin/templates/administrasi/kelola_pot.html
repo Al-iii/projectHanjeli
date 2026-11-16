@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block title %}Kelola Pot{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h1 class="h3 mb-0">Kelola Pot</h1>
+  <a href="{% url 'administrasi:pot_create' %}" class="btn btn-success">Tambah Pot</a>
+</div>
+
+<div class="table-responsive">
+  <table class="table table-striped table-hover align-middle">
+    <thead class="table-light">
+      <tr>
+        <th>No</th><th>Kode Pot</th><th>Jenis Tanaman</th><th>Tanggal Tanam</th>
+        <th>Fase Pertumbuhan</th><th>Perangkat</th><th>Keterangan</th><th>Aksi</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for pot in pots %}
+      <tr>
+        <td>{{ forloop.counter }}</td>
+        <td>{{ pot.kode_pot }}</td>
+        <td>{{ pot.jenis_tanaman }}</td>
+        <td>{{ pot.tanggal_tanam|date:"d M Y" }}</td>
+        <td>{{ pot.get_fase_pertumbuhan_display }}</td>
+        <td>{% if pot.device_terpasang %}{{ pot.device_terpasang.device_id }}{% else %}Belum dipasangi{% endif %}</td>
+        <td>{{ pot.keterangan|default:"-" }}</td>
+        <td class="text-nowrap">
+          <a href="{% url 'administrasi:pot_update' pot.kode_pot %}" class="btn btn-sm btn-primary">Edit</a>
+          <a href="{% url 'administrasi:pot_delete' pot.kode_pot %}" class="btn btn-sm btn-danger">Hapus</a>
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="8" class="text-center">Belum ada data pot.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

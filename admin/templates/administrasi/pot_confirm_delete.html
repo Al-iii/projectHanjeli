@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block title %}Hapus Pot{% endblock %}
+
+{% block content %}
+<h1 class="h3 mb-3">Konfirmasi Hapus</h1>
+<p>Yakin ingin menghapus pot <strong>{{ pot.kode_pot }}</strong> untuk tanaman <strong>{{ pot.jenis_tanaman }}</strong>?</p>
+<form method="post">
+  {% csrf_token %}
+  <button type="submit" class="btn btn-danger">Ya, Hapus</button>
+  <a href="{% url 'administrasi:pot_list' %}" class="btn btn-secondary">Batal</a>
+</form>
+{% endblock %}

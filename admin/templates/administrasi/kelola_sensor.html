@@ -38,8 +38,9 @@
         <div class="text-white fw-bold fs-5 mb-4"><i class="bi bi-flower2 me-2 text-success"></i>Smart Agriculture</div>
         <div class="text-uppercase text-white-50 small mb-2">Modul Administrasi</div>
         <div class="nav flex-column gap-1">
+          <a href="{% url 'dashboard_main' %}" class="rounded px-3 py-2"><i class="bi bi-house-fill me-2"></i>Dashboard</a>
           <a href="{% url 'administrasi:kelola_sensor' %}" class="rounded px-3 py-2 active"><i class="bi bi-cpu-fill me-2"></i>Kelola Sensor</a>
-          <a href="#" class="rounded px-3 py-2"><i class="bi bi-box-seam me-2"></i>Kelola Pot</a>
+          <a href="{% url 'administrasi:pot_list' %}" class="rounded px-3 py-2"><i class="bi bi-box-seam me-2"></i>Kelola Pot</a>
           <a href="#" class="rounded px-3 py-2"><i class="bi bi-droplet-fill me-2"></i>Kelola Penyiraman</a>
         </div>
       </nav>
