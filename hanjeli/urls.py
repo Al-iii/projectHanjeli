@@ -13,7 +13,7 @@ from admin.views import dashboard_main
 
 urlpatterns = [
     # Landing page pada root proyek.
-    path("", dashboard_main, name="dashboard_main"),
+    path("admin-dashboard/", dashboard_main, name="dashboard_main"),
 
     # Django built-in admin panel
     path("admin/", admin.site.urls),
