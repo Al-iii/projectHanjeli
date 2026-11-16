@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block title %}{{ judul }}{% endblock %}
+
+{% block content %}
+<h1 class="h3 mb-3">{{ judul }}</h1>
+
+<form method="post" novalidate>
+  {% csrf_token %}
+  {% for field in form %}
+  <div class="mb-3">
+    <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+    {{ field }}
+    {% for error in field.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+  </div>
+  {% endfor %}
+  {% if form.non_field_errors %}<div class="alert alert-danger">{{ form.non_field_errors }}</div>{% endif %}
+  <button type="submit" class="btn btn-success">Simpan</button>
+  <a href="{% url 'administrasi:pot_list' %}" class="btn btn-secondary">Batal</a>
+</form>
+{% endblock %}

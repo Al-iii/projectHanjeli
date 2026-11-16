@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard | Smart Agriculture Hanjeli{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+  <h1 class="h3">Selamat Datang di Sistem Smart Agriculture Hanjeli</h1>
+  <p class="text-secondary mb-0">Dashboard utama pengelolaan budidaya Hanjeli.</p>
+</div>
+
+<div class="row g-3">
+  <div class="col-md-4">
+    <div class="card h-100">
+      <div class="card-body">
+        <h2 class="h5 card-title">Perangkat Sensor</h2>
+        <p class="card-text">Pantau status koneksi dan data sensor lapangan.</p>
+        <a href="{% url 'administrasi:kelola_sensor' %}" class="btn btn-outline-success">Buka Kelola Sensor</a>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card h-100">
+      <div class="card-body">
+        <h2 class="h5 card-title">Kelola Pot</h2>
+        <p class="card-text">Kelola tanaman, fase pertumbuhan, dan perangkat pot.</p>
+        <a href="{% url 'administrasi:pot_list' %}" class="btn btn-outline-success">Buka Kelola Pot</a>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card h-100">
+      <div class="card-body">
+        <h2 class="h5 card-title">Budidaya Hanjeli</h2>
+        <p class="card-text">Ringkasan kegiatan Smart Agriculture akan ditampilkan di sini.</p>
+        <span class="badge text-bg-secondary">Segera hadir</span>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

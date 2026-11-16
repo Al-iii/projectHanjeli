@@ -1,3 +1,4 @@
+
 """
 urls.py - Konfigurasi URL utama proyek Smart Agriculture Hanjeli.
 """
@@ -9,6 +10,8 @@ from admin.views import dashboard_main
 urlpatterns = [
     # Dashboard utama
     path("", include("dashboard.urls")),
+
+    # Dashboard administrasi
     path("admin-dashboard/", dashboard_main, name="dashboard_main"),
 
     # Dashboard modul lainnya
