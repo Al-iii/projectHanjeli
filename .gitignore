@@ -3,6 +3,7 @@ __pycache__/
 *.py[cod]
 venv/
 db.sqlite3
-dataset_hanjeli/images/
-dataset_hanjeli/labels/
+# /media/
+# dataset_hanjeli/images/
+# dataset_hanjeli/labels/
 runs/
