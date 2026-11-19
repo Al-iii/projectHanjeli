@@ -68,11 +68,7 @@ def _get_devices_with_latest_data():
     for device in devices:
         device.weather = device.weather_terbaru[0] if device.weather_terbaru else None
         device.soil = device.soil_terbaru
-<<<<<<< HEAD
-
-=======
         device.status_tanah = _klasifikasi_status_perangkat(device.soil)
->>>>>>> c222708b1e020351fdfe2df2a246768cf2099293
     return devices
 
 
