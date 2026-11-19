@@ -1,4 +1,9 @@
-"""MicroPython ESP32 publisher untuk Smart Agriculture."""
+"""SIMULASI CADANGAN MicroPython ESP32 untuk Smart Agriculture.
+
+File ini hanya untuk simulasi lokal/perangkat uji. Server Django tidak
+menjalankan file ini; server menerima pesan broker melalui mqtt_worker.py.
+Jangan unggah firmware simulasi ini ke perangkat yang sedang mengirim data asli.
+"""
 import json
 import time
 import network
@@ -24,8 +29,45 @@ def connect_wifi():
 
 
 def read_dummy_sensor():
-    """Buat payload telemetry sesuai kontrak sistem."""
-    return {"device_id": DEVICE_ID, "weather": {"temp": 29.4, "rh": 68.2, "lux": 42150}, "soil": {"nodes": [{"adc": 610}, {"adc": 575}, {"adc": 400}]}}
+    """Buat payload simulasi dengan struktur telemetry broker asli."""
+    return {
+        "firmware_version": "simulation",
+        "device_id": DEVICE_ID,
+        "valve": False,
+        "pump": False,
+        "state": "idle",
+        "status": "ok",
+        "flow_lpm": 0.0,
+        "tot_liter": 0,
+        "weather": {
+            "active": 1,
+            "nodes": [
+                {
+                    "address": 1,
+                    "online": True,
+                    "temp": 25.2,
+                    "rh": 61.1,
+                    "lux": 0,
+                    "firmware": "simulation",
+                }
+            ],
+        },
+        "soil": {
+            "active": 1,
+            "nodes": [
+                {"address": 19, "online": False},
+                {"address": 17, "online": False},
+                {
+                    "address": 18,
+                    "online": True,
+                    "adc": 386,
+                    "firmware": "simulation",
+                },
+            ],
+        },
+        "wifi_rssi": -39,
+        "uptime_s": 0,
+    }
 
 
 def create_client():

@@ -10,6 +10,43 @@ from .forms import PotForm
 
 from mqtt_receiver.models import Telemetry
 
+ADC_KERING = 2500
+ADC_BASAH = 1200
+
+
+def klasifikasi_status_tanah(nilai_adc):
+    """Klasifikasikan ADC: lebih tinggi berarti tanah lebih kering."""
+    if nilai_adc is None or isinstance(nilai_adc, bool):
+        return "Tidak Ada Data"
+    try:
+        nilai_adc = float(nilai_adc)
+    except (TypeError, ValueError):
+        return "Tidak Ada Data"
+
+    if nilai_adc > ADC_KERING:
+        return "Kering"
+    if nilai_adc < ADC_BASAH:
+        return "Basah"
+    return "Normal"
+
+
+def _klasifikasi_status_perangkat(soil_nodes):
+    """Pakai median ADC node valid agar status perangkat mewakili sensornya."""
+    nilai_valid = sorted(
+        node.adc
+        for node in soil_nodes
+        if node.adc is not None and isinstance(node.adc, (int, float))
+    )
+    if not nilai_valid:
+        return "Tidak Ada Data"
+
+    tengah = len(nilai_valid) // 2
+    if len(nilai_valid) % 2:
+        nilai_perwakilan = nilai_valid[tengah]
+    else:
+        nilai_perwakilan = (nilai_valid[tengah - 1] + nilai_valid[tengah]) / 2
+    return klasifikasi_status_tanah(nilai_perwakilan)
+
 
 def _get_devices_with_latest_data():
     """Load devices and their latest weather and soil snapshots efficiently."""
@@ -31,7 +68,11 @@ def _get_devices_with_latest_data():
     for device in devices:
         device.weather = device.weather_terbaru[0] if device.weather_terbaru else None
         device.soil = device.soil_terbaru
+<<<<<<< HEAD
 
+=======
+        device.status_tanah = _klasifikasi_status_perangkat(device.soil)
+>>>>>>> c222708b1e020351fdfe2df2a246768cf2099293
     return devices
 
 
@@ -84,6 +125,7 @@ def data_sensor_json(request):
                     {"address": node.address, "adc": node.adc}
                     for node in device.soil
                 ],
+                "status_tanah": device.status_tanah,
             }
             for device in devices
         ],

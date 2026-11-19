@@ -37,4 +37,84 @@
     </div>
   </div>
 </div>
+
+<section class="card mt-4" id="soil-monitoring" data-json-url="{% url 'administrasi:data_sensor_json' %}">
+  <div class="card-header bg-white d-flex justify-content-between align-items-center">
+    <div>
+      <h2 class="h5 mb-1">Monitoring Kondisi Tanah</h2>
+      <small class="text-secondary">Pembaruan otomatis setiap 5 detik</small>
+    </div>
+    <span id="soil-monitoring-updated" class="small text-secondary" role="status" aria-live="polite"></span>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+      <thead class="table-light"><tr><th>Device ID</th><th>Status Tanah</th></tr></thead>
+      <tbody id="soil-monitoring-body">
+        <tr><td colspan="2" class="text-secondary">Memuat data perangkat...</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<script>
+  (() => {
+    const panel = document.getElementById("soil-monitoring");
+    const tbody = document.getElementById("soil-monitoring-body");
+    const updatedLabel = document.getElementById("soil-monitoring-updated");
+    const badgeClass = {
+      "Kering": "text-bg-danger",
+      "Normal": "text-bg-success",
+      "Basah": "text-bg-primary",
+      "Tidak Ada Data": "text-bg-secondary"
+    };
+
+    function renderDevices(devices) {
+      tbody.replaceChildren();
+      if (!devices.length) {
+        const row = document.createElement("tr");
+        const cell = document.createElement("td");
+        cell.colSpan = 2;
+        cell.className = "text-center text-secondary py-3";
+        cell.textContent = "Belum ada data perangkat.";
+        row.appendChild(cell);
+        tbody.appendChild(row);
+        return;
+      }
+
+      devices.forEach((device) => {
+        const row = document.createElement("tr");
+        const idCell = document.createElement("td");
+        idCell.textContent = device.device_id;
+        const statusCell = document.createElement("td");
+        const status = device.status_tanah || "Tidak Ada Data";
+        const badge = document.createElement("span");
+        badge.className = `badge rounded-pill ${badgeClass[status] || badgeClass["Tidak Ada Data"]}`;
+        badge.textContent = status;
+        statusCell.appendChild(badge);
+        row.append(idCell, statusCell);
+        tbody.appendChild(row);
+      });
+    }
+
+    async function refreshSoilStatus() {
+      try {
+        const response = await fetch(panel.dataset.jsonUrl, {
+          headers: { "Accept": "application/json" },
+          cache: "no-store"
+        });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const data = await response.json();
+        renderDevices(data.devices || []);
+        updatedLabel.textContent = `Diperbarui ${new Date().toLocaleTimeString("id-ID")}`;
+      } catch (error) {
+        console.error("Gagal memuat status tanah:", error);
+        updatedLabel.textContent = "Gagal memperbarui data; mencoba kembali.";
+      } finally {
+        window.setTimeout(refreshSoilStatus, 5000);
+      }
+    }
+
+    refreshSoilStatus();
+  })();
+</script>
 {% endblock %}

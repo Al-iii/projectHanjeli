@@ -25,6 +25,11 @@
     .status-badge { display: inline-flex; align-items: center; gap: .4rem; padding: .4rem .7rem; border-radius: 999px; font-size: .78rem; font-weight: 700; text-transform: capitalize; }
     .status-online { background: #d9f4e5; color: #137341; }
     .status-offline { background: #e9ecef; color: #58616a; }
+    .soil-status-badge { display: inline-block; padding: .4rem .7rem; border-radius: 999px; font-size: .78rem; font-weight: 700; white-space: nowrap; }
+    .soil-dry { background: #fce8e8; color: #b42318; }
+    .soil-normal { background: #d9f4e5; color: #137341; }
+    .soil-wet { background: #dbeafe; color: #175cd3; }
+    .soil-no-data { background: #e9ecef; color: #58616a; }
     .soil-chip { display: inline-block; margin: .12rem .15rem .12rem 0; padding: .28rem .5rem; border: 1px solid #dce5de; border-radius: .5rem; background: #f7faf8; color: #3e5145; font-size: .78rem; white-space: nowrap; }
     .metric-icon { margin-right: .35rem; }
     @media (max-width: 767.98px) { #sidebar { min-height: auto; } }
@@ -87,7 +92,7 @@
                 <th>No</th><th>Device ID</th><th>Status</th>
                 <th><i class="bi bi-thermometer-half text-danger metric-icon"></i>Suhu (°C)</th>
                 <th><i class="bi bi-droplet-half text-primary metric-icon"></i>Kelembaban (%)</th>
-                <th><i class="bi bi-leaf text-success metric-icon"></i>ADC Tanah</th>
+                <th><i class="bi bi-leaf text-success metric-icon"></i>ADC Tanah</th><th>Status Tanah</th>
                 <th>Aksi</th>
               </tr></thead>
               <tbody id="device-table-body">
@@ -99,9 +104,10 @@
                   <td>{% if device.weather and device.weather.temp is not None %}{{ device.weather.temp|floatformat:1 }}{% else %}<span class="text-secondary">—</span>{% endif %}</td>
                   <td>{% if device.weather and device.weather.rh is not None %}{{ device.weather.rh|floatformat:1 }}{% else %}<span class="text-secondary">—</span>{% endif %}</td>
                   <td>{% for soil in device.soil %}<span class="soil-chip"><i class="bi bi-geo me-1"></i>{{ soil.address }}: {% if soil.adc is not None %}{{ soil.adc }}{% else %}—{% endif %}</span>{% empty %}<span class="text-secondary">—</span>{% endfor %}</td>
+                  <td><span class="soil-status-badge {% if device.status_tanah == 'Kering' %}soil-dry{% elif device.status_tanah == 'Normal' %}soil-normal{% elif device.status_tanah == 'Basah' %}soil-wet{% else %}soil-no-data{% endif %}">{{ device.status_tanah }}</span></td>
                   <td><a href="#" class="link-primary text-decoration-none me-2">Edit</a><a href="#" class="link-danger text-decoration-none">Hapus</a></td>
                 </tr>
-                {% empty %}<tr><td colspan="7" class="text-center text-secondary py-5"><i class="bi bi-inbox fs-3 d-block mb-2"></i>Belum ada data perangkat.</td></tr>{% endfor %}
+                {% empty %}<tr><td colspan="8" class="text-center text-secondary py-5"><i class="bi bi-inbox fs-3 d-block mb-2"></i>Belum ada data perangkat.</td></tr>{% endfor %}
               </tbody>
             </table>
           </div>
@@ -137,7 +143,7 @@
         if (!devices.length) {
           const row = document.createElement("tr");
           const cell = makeCell(row, "Belum ada data perangkat.", "text-center text-secondary py-5");
-          cell.colSpan = 7;
+          cell.colSpan = 8;
           tableBody.appendChild(row);
           return;
         }
@@ -179,6 +185,20 @@
             soilCell.textContent = "—";
           }
           row.appendChild(soilCell);
+
+          const soilStatusCell = document.createElement("td");
+          const soilStatusBadge = document.createElement("span");
+          const soilStatus = device.status_tanah || "Tidak Ada Data";
+          const soilStatusClasses = {
+            "Kering": "soil-dry",
+            "Normal": "soil-normal",
+            "Basah": "soil-wet",
+            "Tidak Ada Data": "soil-no-data"
+          };
+          soilStatusBadge.className = `soil-status-badge ${soilStatusClasses[soilStatus] || "soil-no-data"}`;
+          soilStatusBadge.textContent = soilStatus;
+          soilStatusCell.appendChild(soilStatusBadge);
+          row.appendChild(soilStatusCell);
 
           const actionCell = document.createElement("td");
           const editLink = document.createElement("a");
