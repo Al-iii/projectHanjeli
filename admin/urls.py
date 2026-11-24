@@ -1,7 +1,7 @@
 """
 urls.py - Konfigurasi URL untuk modul administrasi Smart Agriculture Hanjeli.
 
-Semua URL modul administrasi diawali dengan prefix 'administrasi/'
+Semua URL modul administrasi diawali dengan prefix 'admin/sensor/'
 yang didefinisikan di urls.py tingkat proyek (hanjeli/urls.py).
 """
 
@@ -14,14 +14,14 @@ app_name = "administrasi"
 
 urlpatterns = [
     # Halaman daftar & kelola sensor
-    # URL lengkap: /administrasi/sensor/
+    # URL lengkap: /admin/sensor/
     path(
-        "sensor/",
+        "",
         views.kelola_sensor,
         name="kelola_sensor",
     ),
     path(
-        "sensor/data/",
+        "data/",
         views.data_sensor_json,
         name="data_sensor_json",
     ),

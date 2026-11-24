@@ -14,16 +14,18 @@ urlpatterns = [
     path("", include("dashboard.urls")),
 
     # Dashboard administrasi
-    path("admin-dashboard/", dashboard_main, name="dashboard_main"),
+    path("admin-dashboard/", dashboard_main),
+    path("admin", dashboard_main, name="dashboard_main"),
+    path("admin/", dashboard_main, name="dashboard_monitoring_slash"),
 
     # Dashboard modul lainnya
     path("main-dashboard/", include("dashboard.urls")),
 
     # Django Admin
-    path("admin/", admin.site.urls),
+    path("django-admin/", admin.site.urls),
 
     # Modul administrasi Smart Agriculture
-    path("administrasi/", include("admin.urls", namespace="administrasi")),
+    path("admin/sensor/", include("admin.urls", namespace="administrasi")),
     
     path('prediktor/', include('prediktor.urls')),
 ]

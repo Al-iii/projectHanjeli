@@ -35,7 +35,7 @@
           <a href="{% url 'administrasi:pot_list' %}" class="rounded px-3 py-2 {% if request.resolver_match.url_name == 'pot_list' or request.resolver_match.url_name == 'pot_create' or request.resolver_match.url_name == 'pot_update' or request.resolver_match.url_name == 'pot_delete' %}active{% endif %}">
             <i class="bi bi-box-seam me-2"></i>Kelola Pot
           </a>
-          <a href="#" class="rounded px-3 py-2"><i class="bi bi-droplet-fill me-2"></i>Kelola Penyiraman</a>
+          <span class="rounded px-3 py-2 text-white-50"><i class="bi bi-droplet-fill me-2"></i>Kelola Penyiraman <small>(Segera hadir)</small></span>
         </div>
       </nav>
 
