@@ -44,6 +44,9 @@
             background: #28543d;
         }
 
+        .sidebar a { color: inherit; text-decoration: none; display: block; }
+        .sidebar a:hover, .sidebar a:focus-visible { text-decoration: underline; }
+
         /* MAIN CONTENT */
         .main {
             margin-left: 230px;
@@ -268,8 +271,8 @@
     <!-- SIDEBAR -->
     <div class="sidebar">
         <h2>HANJELI</h2>
-        <p>Dashboard</p>
-        <p>Monitoring Sensor</p>
+        <p><a href="{% url 'dashboard_main' %}" aria-current="page">Dashboard</a></p>
+        <p><a href="{% url 'administrasi:kelola_sensor' %}">Monitoring Sensor</a></p>
         <p>Prediksi Pertumbuhan</p>
         <p>Smart Irrigation</p>
     </div>

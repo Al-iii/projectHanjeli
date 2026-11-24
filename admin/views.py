@@ -1,9 +1,13 @@
 
 """View dashboard Modul Administrasi Smart Agriculture."""
 
+import math
+
 from django.db.models import Prefetch
 from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
+from django.utils import timezone
+from django.views.decorators.cache import never_cache
 
 from .models import DataSoil, DataWeather, Device, Pot
 from .forms import PotForm
@@ -22,6 +26,8 @@ def klasifikasi_status_tanah(nilai_adc):
     try:
         nilai_adc = float(nilai_adc)
     except (TypeError, ValueError):
+        return "Tidak Ada Data"
+    if not math.isfinite(nilai_adc) or nilai_adc < 0:
         return "Tidak Ada Data"
 
     if nilai_adc > ADC_KERING:
@@ -87,6 +93,36 @@ def _get_devices_with_latest_data():
 
     return devices
 
+<<<<<<< HEAD
+=======
+def _get_sensor_history():
+    """Riwayat memakai Telemetry, bukan snapshot yang terus ditimpa worker."""
+    history = list(Telemetry.objects.order_by("-received_at", "-pk")[:20])
+    pots_by_device = {}
+    for device_id, kode_pot in Pot.objects.filter(
+        device_terpasang_id__in={item.device_id for item in history}
+    ).values_list("device_terpasang_id", "kode_pot"):
+        pots_by_device.setdefault(device_id, []).append(kode_pot)
+
+    return {
+        "sensor_history": [
+            {
+                "id": item.pk,
+                "waktu": item.received_at.isoformat(),
+                "waktu_label": timezone.localtime(item.received_at).strftime("%d/%m/%Y %H:%M:%S"),
+                "device_id": item.device_id,
+                # Telemetry lama tidak menyimpan relasi pot saat pengukuran.
+                "pots": pots_by_device.get(item.device_id, []),
+                "temp": item.temperature,
+                "rh": item.air_humidity,
+                "adc": item.soil_adc,
+                "status_tanah": klasifikasi_status_tanah(item.soil_adc),
+            }
+            for item in history
+        ],
+    }
+
+>>>>>>> ded167f5a57c3da07d8c02644eb199b75b8cb5ab
 
 # ==========================================
 # KELOLA SENSOR
@@ -113,6 +149,7 @@ def kelola_sensor(request):
         "judul_halaman": "Kelola Sensor",
         "menu_aktif": "kelola_sensor",
     }
+    context.update(_get_sensor_history())
 
     return render(
         request,
@@ -121,6 +158,7 @@ def kelola_sensor(request):
     )
 
 
+@never_cache
 def data_sensor_json(request):
     """Return the latest device and sensor readings for dashboard polling."""
 
@@ -164,6 +202,7 @@ def data_sensor_json(request):
         },
     }
 
+    payload.update(_get_sensor_history())
     return JsonResponse(payload)
 
 
@@ -273,23 +312,16 @@ def dashboard_main(request):
     # Data untuk tabel histori
     history = latest_history
 
-    # Mengambil 10 data terbaru khusus grafik
-    chart_history = list(
-        Telemetry.objects.order_by("-received_at")[:10].values(
-            "received_at",
-            "temperature",
-            "air_humidity",
-            "soil_adc",
-        )
-    )
-
-    # Urutkan grafik dari data lama ke data terbaru
-    chart_history.reverse()
-
-    # Konversi datetime ke string waktu
-    for item in chart_history:
-        item["time"] = item["received_at"].strftime("%H:%M:%S")
-        item.pop("received_at")
+    # Data untuk grafik (lama ke baru)
+    chart_history = [
+        {
+            "time": timezone.localtime(item.received_at).strftime("%H:%M:%S"),
+            "temperature": item.temperature,
+            "air_humidity": item.air_humidity,
+            "soil_adc": item.soil_adc,
+        }
+        for item in reversed(latest_history)
+    ]
 
     context = {
         "telemetry": telemetry,
