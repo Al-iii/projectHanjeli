@@ -1,0 +1,391 @@
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="refresh" content="5">
+    <title>Hanjeli Monitoring Dashboard</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background: #f4f7f5;
+            color: #26352c;
+        }
+
+        .sidebar {
+            position: fixed;
+            width: 230px;
+            height: 100vh;
+            background: #183c2b;
+            color: white;
+            padding: 30px 20px;
+        }
+
+        .sidebar h2 {
+            margin-bottom: 40px;
+        }
+
+        .sidebar p {
+            padding: 14px 10px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            background: #28543d;
+        }
+
+        .sidebar a { color: inherit; text-decoration: none; display: block; }
+        .sidebar a:hover, .sidebar a:focus-visible { text-decoration: underline; }
+
+        .main {
+            margin-left: 230px;
+            padding: 35px;
+        }
+
+        .header {
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            margin-bottom: 8px;
+        }
+
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-top: 25px;
+        }
+
+        .card {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 3px 12px #0000000a;
+        }
+
+        .card p {
+            color: #78857c;
+            margin-bottom: 15px;
+        }
+
+        .card h2 {
+            font-size: 28px;
+            color: #245b3c;
+        }
+
+        .unit {
+            font-size: 14px;
+            color: #78857c;
+        }
+
+        .sensor-history {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            margin-top: 30px;
+            box-shadow: 0 3px 12px #0000000a;
+        }
+
+        .sensor-history h3 {
+            color: #193f2e;
+            margin-bottom: 8px;
+        }
+
+        .history-description {
+            color: #78857c;
+            margin-bottom: 20px;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+        }
+
+        .sensor-history table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .sensor-history th,
+        .sensor-history td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #eeeeee;
+        }
+
+        .sensor-history th {
+            background: #edf4ef;
+            color: #193f2e;
+        }
+
+        .sensor-history td {
+            color: #555;
+        }
+
+        .sensor-history tbody tr:hover {
+            background: #f8faf8;
+        }
+
+        .status {
+            margin-top: 30px;
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 3px 12px #0000000a;
+        }
+
+        .status h3 {
+            color: #193f2e;
+            margin-bottom: 20px;
+        }
+
+        .status p {
+            margin-bottom: 15px;
+            color: #555;
+        }
+
+        .active {
+            color: #16834a;
+        }
+
+        .inactive {
+            color: #c17a25;
+        }
+
+        @media (max-width: 900px) {
+            .cards {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 600px) {
+            .sidebar {
+                display: none;
+            }
+
+            .main {
+                margin-left: 0;
+                padding: 20px;
+            }
+
+            .cards {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="sidebar">
+        <h2>HANJELI</h2>
+        <p><a href="{% url 'dashboard_main' %}" aria-current="page">Dashboard</a></p>
+        <p><a href="{% url 'administrasi:kelola_sensor' %}">Monitoring Sensor</a></p>
+        <p>Prediksi Pertumbuhan</p>
+        <p>Smart Irrigation</p>
+    </div>
+
+    <div class="main">
+
+        <div class="header">
+            <h1>Dashboard Monitoring</h1>
+            <p>Monitoring kondisi lingkungan tanaman Hanjeli</p>
+        </div>
+
+        <h3>Environmental Overview</h3>
+
+        <div class="cards">
+
+            <!-- Temperature -->
+            <div class="card">
+                <p>Suhu</p>
+                <h2>
+                    {% if telemetry and telemetry.temperature != None %}
+                        {{ telemetry.temperature|floatformat:1 }}
+                    {% else %}
+                        --
+                    {% endif %}
+                    <span class="unit">°C</span>
+                </h2>
+            </div>
+
+            <!-- Soil ADC -->
+            <div class="card">
+                <p>Sensor Tanah (ADC)</p>
+                <h2>
+                    {% if telemetry and telemetry.soil_adc != None %}
+                        {{ telemetry.soil_adc }}
+                    {% else %}
+                        --
+                    {% endif %}
+                </h2>
+            </div>
+
+            <!-- Air Humidity -->
+            <div class="card">
+                <p>Kelembapan Udara</p>
+                <h2>
+                    {% if telemetry and telemetry.air_humidity != None %}
+                        {{ telemetry.air_humidity|floatformat:1 }}
+                    {% else %}
+                        --
+                    {% endif %}
+                    <span class="unit">%</span>
+                </h2>
+            </div>
+
+            <!-- Irrigation Status -->
+            <div class="card">
+                <p>Status Penyiraman</p>
+                <h2>
+                    {% if telemetry and telemetry.pump != None and telemetry.valve != None %}
+                        {% if telemetry.pump or telemetry.valve %}
+                            <span class="active">ON</span>
+                        {% else %}
+                            <span class="inactive">OFF</span>
+                        {% endif %}
+                    {% else %}
+                        --
+                    {% endif %}
+                </h2>
+            </div>
+
+        </div>
+
+        <!-- Sensor Monitoring History -->
+        <div class="sensor-history">
+
+            <h3>Sensor Monitoring History</h3>
+
+            <p class="history-description">
+                Riwayat 10 pembacaan sensor terakhir
+            </p>
+
+            <div class="table-wrapper">
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Waktu</th>
+                            <th>Suhu (°C)</th>
+                            <th>Sensor Tanah (ADC)</th>
+                            <th>Kelembapan Udara (%)</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        {% for item in history %}
+                        <tr>
+                            <td>{{ item.received_at|date:"d/m/Y H:i:s" }}</td>
+
+                            <td>
+                                {% if item.temperature != None %}
+                                    {{ item.temperature|floatformat:1 }}
+                                {% else %}
+                                    --
+                                {% endif %}
+                            </td>
+
+                            <td>
+                                {% if item.soil_adc != None %}
+                                    {{ item.soil_adc }}
+                                {% else %}
+                                    --
+                                {% endif %}
+                            </td>
+
+                            <td>
+                                {% if item.air_humidity != None %}
+                                    {{ item.air_humidity|floatformat:1 }}
+                                {% else %}
+                                    --
+                                {% endif %}
+                            </td>
+                        </tr>
+
+                        {% empty %}
+                        <tr>
+                            <td colspan="4">Belum ada data telemetry.</td>
+                        </tr>
+                        {% endfor %}
+
+                    </tbody>
+                </table>
+
+            </div>
+        </div>
+
+        <!-- System Information -->
+        <div class="status">
+
+            <h3>System Information</h3>
+
+            {% if telemetry %}
+
+                <p>
+                    Device ID: {{ telemetry.device_id }}
+                </p>
+
+                <p>
+                    Status Perangkat: {{ telemetry.status|default:"-" }}
+                </p>
+
+                <p>
+                    Kondisi Sistem: {{ telemetry.state|default:"-" }}
+                </p>
+
+                <p>
+                    Status Pompa:
+                    {% if telemetry.pump == None %}
+                        --
+                    {% elif telemetry.pump %}
+                        <span class="active">ON</span>
+                    {% else %}
+                        <span class="inactive">OFF</span>
+                    {% endif %}
+                </p>
+
+                <p>
+                    Status Valve:
+                    {% if telemetry.valve == None %}
+                        --
+                    {% elif telemetry.valve %}
+                        <span class="active">ON</span>
+                    {% else %}
+                        <span class="inactive">OFF</span>
+                    {% endif %}
+                </p>
+
+                <p>
+                    Aliran Air:
+                    {% if telemetry.flow_lpm != None %}
+                        {{ telemetry.flow_lpm }} L/min
+                    {% else %}
+                        --
+                    {% endif %}
+                </p>
+
+                <p>
+                    Terakhir Diperbarui:
+                    {{ telemetry.received_at|date:"d/m/Y H:i:s" }}
+                </p>
+
+            {% else %}
+
+                <p>Belum ada data telemetry yang diterima.</p>
+
+            {% endif %}
+
+        </div>
+
+    </div>
+
+</body>
+</html>

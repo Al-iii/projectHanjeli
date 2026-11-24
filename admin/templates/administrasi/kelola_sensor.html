@@ -46,13 +46,14 @@
           <a href="{% url 'dashboard_main' %}" class="rounded px-3 py-2"><i class="bi bi-house-fill me-2"></i>Dashboard</a>
           <a href="{% url 'administrasi:kelola_sensor' %}" class="rounded px-3 py-2 active"><i class="bi bi-cpu-fill me-2"></i>Kelola Sensor</a>
           <a href="{% url 'administrasi:pot_list' %}" class="rounded px-3 py-2"><i class="bi bi-box-seam me-2"></i>Kelola Pot</a>
-          <a href="#" class="rounded px-3 py-2"><i class="bi bi-droplet-fill me-2"></i>Kelola Penyiraman</a>
+          <a href="#log-penyiraman" class="rounded px-3 py-2"><i class="bi bi-droplet-fill me-2"></i>Log Penyiraman</a>
         </div>
       </nav>
 
       <main id="main-content" class="col-md-9 col-lg-10 p-3 p-lg-4" data-json-url="{% url 'administrasi:data_sensor_json' %}">
         <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
           <div>
+            <a href="{% url 'dashboard_main' %}" class="link-success d-inline-block mb-2"><i class="bi bi-arrow-left me-1"></i>Kembali ke Dashboard Monitoring</a>
             <h1 class="h3 fw-bold mb-1">Kelola Sensor</h1>
             <p class="text-secondary mb-0">Status perangkat dan pembacaan sensor terbaru.</p>
           </div>
@@ -108,6 +109,54 @@
                   <td><a href="#" class="link-primary text-decoration-none me-2">Edit</a><a href="#" class="link-danger text-decoration-none">Hapus</a></td>
                 </tr>
                 {% empty %}<tr><td colspan="8" class="text-center text-secondary py-5"><i class="bi bi-inbox fs-3 d-block mb-2"></i>Belum ada data perangkat.</td></tr>{% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </section>
+        <section class="card table-card mt-4" aria-labelledby="sensor-history-title">
+          <div class="card-header bg-white border-0 rounded-top-4 px-4 pt-4 pb-3">
+            <h2 id="sensor-history-title" class="h5 fw-bold mb-1">Riwayat Pembacaan Sensor</h2>
+            <p class="small text-secondary mb-0">20 pembacaan terakhir. Waktu penerimaan (WIB); pot mengikuti pemasangan saat ini.</p>
+          </div>
+          <div class="table-responsive">
+            <table class="table table-hover sensor-table mb-0">
+              <thead class="table-light"><tr>
+                <th>Waktu</th><th>Perangkat / Pot</th><th>Suhu (°C)</th>
+                <th>Kelembapan Udara (%)</th><th>Sensor Tanah (ADC)</th><th>Status Tanah</th>
+              </tr></thead>
+              <tbody id="sensor-history-body">
+                {% for item in sensor_history %}
+                <tr>
+                  <td class="text-nowrap">{{ item.waktu_label }}</td>
+                  <td>{{ item.device_id }}{% if item.pots %}<small class="d-block text-secondary">{{ item.pots|join:", " }}</small>{% endif %}</td>
+                  <td>{{ item.temp|floatformat:1|default:"—" }}</td>
+                  <td>{{ item.rh|floatformat:1|default:"—" }}</td>
+                  <td>{{ item.adc|default_if_none:"—" }}</td>
+                  <td>{% include "administrasi/_status_tanah.html" with status=item.status_tanah %}</td>
+                </tr>
+                {% empty %}<tr><td colspan="6" class="text-center text-secondary py-4">Belum ada riwayat pembacaan sensor.</td></tr>{% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section id="log-penyiraman" class="card table-card mt-4" aria-labelledby="irrigation-title">
+          <div class="card-header bg-white border-0 rounded-top-4 px-4 pt-4 pb-3">
+            <h2 id="irrigation-title" class="h5 fw-bold mb-1">Log Penyiraman</h2>
+            <p class="small text-secondary mb-0">20 kejadian terakhir dari laporan pompa/valve. ON berarti pompa atau valve aktif; bukan konfirmasi aliran air. Waktu penerimaan (WIB).</p>
+          </div>
+          <div class="table-responsive">
+            <table class="table table-hover sensor-table mb-0">
+              <thead class="table-light"><tr><th>Waktu</th><th>Perangkat / Pot</th><th>Status</th><th>Pemicu / Keterangan</th></tr></thead>
+              <tbody id="irrigation-log-body">
+                {% for item in irrigation_logs %}
+                <tr>
+                  <td class="text-nowrap">{{ item.waktu_label }}</td>
+                  <td>{{ item.device_id }}{% if item.pots %}<small class="d-block text-secondary">{{ item.pots|join:", " }}</small>{% endif %}</td>
+                  <td><span class="badge rounded-pill {% if item.status == 'ON' %}text-bg-success{% else %}text-bg-secondary{% endif %}">{{ item.status }}</span><small class="d-block text-secondary mt-1">Pompa {{ item.pump|yesno:"ON,OFF" }} · Valve {{ item.valve|yesno:"ON,OFF" }}</small></td>
+                  <td>{{ item.pemicu }}<small class="d-block text-secondary">{{ item.keterangan }} · ADC: {{ item.adc|default_if_none:"—" }}</small></td>
+                </tr>
+                {% empty %}<tr><td colspan="4" class="text-center text-secondary py-4">Belum ada log penyiraman. Menunggu laporan pompa/valve dari perangkat.</td></tr>{% endfor %}
               </tbody>
             </table>
           </div>
@@ -216,6 +265,60 @@
         });
       };
 
+      const makeSoilBadge = (status) => {
+        const badge = document.createElement("span");
+        const classes = { Kering: "soil-dry", Normal: "soil-normal", Basah: "soil-wet" };
+        badge.className = `soil-status-badge ${classes[status] || "soil-no-data"}`;
+        badge.textContent = status || "Tidak Ada Data";
+        return badge;
+      };
+
+      const renderHistory = (items, bodyId, isIrrigation = false) => {
+        const body = document.getElementById(bodyId);
+        const rows = document.createDocumentFragment();
+        items.forEach((item) => {
+          const row = document.createElement("tr");
+          makeCell(row, item.waktu_label, "text-nowrap");
+          const deviceCell = makeCell(row, item.device_id);
+          if (item.pots.length) {
+            const pots = document.createElement("small");
+            pots.className = "d-block text-secondary";
+            pots.textContent = item.pots.join(", ");
+            deviceCell.appendChild(pots);
+          }
+          if (isIrrigation) {
+            const cell = makeCell(row, "");
+            const badge = document.createElement("span");
+            badge.className = `badge rounded-pill ${item.status === "ON" ? "text-bg-success" : "text-bg-secondary"}`;
+            badge.textContent = item.status;
+            const state = document.createElement("small");
+            state.className = "d-block text-secondary mt-1";
+            state.textContent = `Pompa ${item.pump ? "ON" : "OFF"} · Valve ${item.valve ? "ON" : "OFF"}`;
+            cell.append(badge, state);
+            const reasonCell = makeCell(row, item.pemicu);
+            const detail = document.createElement("small");
+            detail.className = "d-block text-secondary";
+            detail.textContent = `${item.keterangan} · ADC: ${item.adc ?? "—"}`;
+            reasonCell.appendChild(detail);
+          } else {
+            makeCell(row, item.temp == null ? "—" : Number(item.temp).toFixed(1));
+            makeCell(row, item.rh == null ? "—" : Number(item.rh).toFixed(1));
+            makeCell(row, item.adc ?? "—");
+            makeCell(row, "").appendChild(makeSoilBadge(item.status_tanah));
+          }
+          rows.appendChild(row);
+        });
+        if (!items.length) {
+          const row = document.createElement("tr");
+          const message = isIrrigation
+            ? "Belum ada log penyiraman. Menunggu laporan pompa/valve dari perangkat."
+            : "Belum ada riwayat pembacaan sensor.";
+          makeCell(row, message, "text-center text-secondary py-4").colSpan = isIrrigation ? 4 : 6;
+          rows.appendChild(row);
+        }
+        body.replaceChildren(rows);
+      };
+
       const refreshDashboard = async () => {
         try {
           const response = await fetch(main.dataset.jsonUrl, {
@@ -226,6 +329,8 @@
 
           const data = await response.json();
           renderDevices(data.devices);
+          renderHistory(data.sensor_history || [], "sensor-history-body");
+          renderHistory(data.irrigation_logs || [], "irrigation-log-body", true);
           setText(document.getElementById("summary-total"), data.summary.total);
           setText(document.getElementById("summary-online"), data.summary.online);
           setText(document.getElementById("summary-offline"), data.summary.offline);

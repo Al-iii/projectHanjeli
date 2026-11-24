@@ -1,10 +1,18 @@
+
 """View dashboard Modul Administrasi Smart Agriculture."""
+
+import math
 
 from django.db.models import Prefetch
 from django.http import JsonResponse
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404, redirect
+from django.utils import timezone
+from django.views.decorators.cache import never_cache
 
-from .models import DataSoil, DataWeather, Device
+from .models import DataSoil, DataWeather, Device, LogPenyiraman, Pot
+from .forms import PotForm
+
+from mqtt_receiver.models import Telemetry
 
 ADC_KERING = 2500
 ADC_BASAH = 1200
@@ -17,6 +25,8 @@ def klasifikasi_status_tanah(nilai_adc):
     try:
         nilai_adc = float(nilai_adc)
     except (TypeError, ValueError):
+        return "Tidak Ada Data"
+    if not math.isfinite(nilai_adc) or nilai_adc < 0:
         return "Tidak Ada Data"
 
     if nilai_adc > ADC_KERING:
@@ -68,12 +78,64 @@ def _get_devices_with_latest_data():
     return devices
 
 
+def _get_sensor_history():
+    """Riwayat memakai Telemetry, bukan snapshot yang terus ditimpa worker."""
+    history = list(Telemetry.objects.order_by("-received_at", "-pk")[:20])
+    pots_by_device = {}
+    for device_id, kode_pot in Pot.objects.filter(
+        device_terpasang_id__in={item.device_id for item in history}
+    ).values_list("device_terpasang_id", "kode_pot"):
+        pots_by_device.setdefault(device_id, []).append(kode_pot)
+
+    return {
+        "sensor_history": [
+            {
+                "id": item.pk,
+                "waktu": item.received_at.isoformat(),
+                "waktu_label": timezone.localtime(item.received_at).strftime("%d/%m/%Y %H:%M:%S"),
+                "device_id": item.device_id,
+                # Telemetry lama tidak menyimpan relasi pot saat pengukuran.
+                "pots": pots_by_device.get(item.device_id, []),
+                "temp": item.temperature,
+                "rh": item.air_humidity,
+                "adc": item.soil_adc,
+                "status_tanah": klasifikasi_status_tanah(item.soil_adc),
+            }
+            for item in history
+        ],
+        "irrigation_logs": [
+            {
+                "id": log.pk,
+                "waktu": log.waktu.isoformat(),
+                "waktu_label": timezone.localtime(log.waktu).strftime("%d/%m/%Y %H:%M:%S"),
+                "device_id": log.identitas_perangkat,
+                "pots": log.kode_pot,
+                "status": log.status,
+                "pump": log.pump,
+                "valve": log.valve,
+                "pemicu": log.pemicu,
+                "keterangan": log.keterangan,
+                "adc": log.adc,
+            }
+            for log in LogPenyiraman.objects.all()[:20]
+        ],
+    }
+
+
+# ==========================================
+# KELOLA SENSOR
+# ==========================================
+
 def kelola_sensor(request):
     """Ambil perangkat beserta snapshot weather dan soil terakhirnya."""
     devices = _get_devices_with_latest_data()
 
     total = len(devices)
-    online = sum(device.status_koneksi == Device.STATUS_ONLINE for device in devices)
+    online = sum(
+        device.status_koneksi == Device.STATUS_ONLINE
+        for device in devices
+    )
+
     context = {
         "devices": devices,
         "total_sensor": total,
@@ -83,12 +145,16 @@ def kelola_sensor(request):
         "judul_halaman": "Kelola Sensor",
         "menu_aktif": "kelola_sensor",
     }
+    context.update(_get_sensor_history())
+
     return render(request, "administrasi/kelola_sensor.html", context)
 
 
+@never_cache
 def data_sensor_json(request):
     """Return the latest device and sensor readings for dashboard polling."""
     devices = _get_devices_with_latest_data()
+
     payload = {
         "devices": [
             {
@@ -114,35 +180,43 @@ def data_sensor_json(request):
         "summary": {
             "total": len(devices),
             "online": sum(
-                device.status_koneksi == Device.STATUS_ONLINE for device in devices
+                device.status_koneksi == Device.STATUS_ONLINE
+                for device in devices
             ),
             "offline": sum(
-                device.status_koneksi == Device.STATUS_OFFLINE for device in devices
+                device.status_koneksi == Device.STATUS_OFFLINE
+                for device in devices
             ),
         },
     }
+
+    payload.update(_get_sensor_history())
     return JsonResponse(payload)
 
 
-# CRUD Pot ditambahkan terpisah agar view sensor dan endpoint MQTT tetap utuh.
-from django.shortcuts import get_object_or_404, redirect  # noqa: E402
-
-from .forms import PotForm  # noqa: E402
-from .models import Pot  # noqa: E402
-
+# ==========================================
+# KELOLA POT
+# ==========================================
 
 def pot_list(request):
     """Tampilkan seluruh pot dengan perangkat terkait."""
     pots = Pot.objects.select_related("device_terpasang").all()
-    return render(request, "administrasi/kelola_pot.html", {"pots": pots})
+
+    return render(
+        request,
+        "administrasi/kelola_pot.html",
+        {"pots": pots},
+    )
 
 
 def pot_create(request):
     """Buat pot baru dari form yang valid."""
     form = PotForm(request.POST if request.method == "POST" else None)
+
     if request.method == "POST" and form.is_valid():
         form.save()
         return redirect("administrasi:pot_list")
+
     return render(
         request,
         "administrasi/pot_form.html",
@@ -153,13 +227,16 @@ def pot_create(request):
 def pot_update(request, kode_pot):
     """Edit data pot berdasarkan primary key kode_pot."""
     pot = get_object_or_404(Pot, pk=kode_pot)
+
     form = PotForm(
         request.POST if request.method == "POST" else None,
         instance=pot,
     )
+
     if request.method == "POST" and form.is_valid():
         form.save()
         return redirect("administrasi:pot_list")
+
     return render(
         request,
         "administrasi/pot_form.html",
@@ -170,9 +247,11 @@ def pot_update(request, kode_pot):
 def pot_delete(request, kode_pot):
     """Hapus pot hanya setelah konfirmasi dikirim dengan POST."""
     pot = get_object_or_404(Pot, pk=kode_pot)
+
     if request.method == "POST":
         pot.delete()
         return redirect("administrasi:pot_list")
+
     return render(
         request,
         "administrasi/pot_confirm_delete.html",
@@ -180,6 +259,50 @@ def pot_delete(request, kode_pot):
     )
 
 
+# ==========================================
+# DASHBOARD UTAMA - DATA MQTT
+# ==========================================
+
 def dashboard_main(request):
-    """Render landing page utama Smart Agriculture."""
-    return render(request, "administrasi/dashboard.html")
+    """Render dashboard utama dengan data telemetry MQTT."""
+
+    telemetry = Telemetry.objects.order_by("-received_at").first()
+
+    history = Telemetry.objects.order_by("-received_at")[:10]
+
+    context = {
+        "telemetry": telemetry,
+        "history": history,
+    }
+
+    return render(request, "dashboard/index.html", context)
+
+
+# ==========================================
+# API DATA TELEMETRY TERBARU
+# ==========================================
+
+def telemetry_latest_json(request):
+    """Mengirim data telemetry terbaru dalam format JSON."""
+
+    telemetry = Telemetry.objects.order_by("-received_at").first()
+
+    if telemetry is None:
+        return JsonResponse({
+            "available": False,
+            "message": "Belum ada data telemetry.",
+        })
+
+    return JsonResponse({
+        "available": True,
+        "device_id": telemetry.device_id,
+        "temperature": telemetry.temperature,
+        "air_humidity": telemetry.air_humidity,
+        "soil_adc": telemetry.soil_adc,
+        "pump": telemetry.pump,
+        "valve": telemetry.valve,
+        "state": telemetry.state,
+        "status": telemetry.status,
+        "flow_lpm": telemetry.flow_lpm,
+        "received_at": telemetry.received_at.isoformat(),
+    })
