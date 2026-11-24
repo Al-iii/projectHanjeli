@@ -93,8 +93,6 @@ def _get_devices_with_latest_data():
 
     return devices
 
-<<<<<<< HEAD
-=======
 def _get_sensor_history():
     """Riwayat memakai Telemetry, bukan snapshot yang terus ditimpa worker."""
     history = list(Telemetry.objects.order_by("-received_at", "-pk")[:20])
@@ -122,7 +120,6 @@ def _get_sensor_history():
         ],
     }
 
->>>>>>> ded167f5a57c3da07d8c02644eb199b75b8cb5ab
 
 # ==========================================
 # KELOLA SENSOR
