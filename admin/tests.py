@@ -6,10 +6,8 @@ from django.urls import resolve, reverse
 
 from mqtt_receiver.models import Telemetry
 
-from .models import DataSoil, DataWeather, Device, LogPenyiraman, Pot
+from .models import DataSoil, DataWeather, Device, Pot
 from .views import klasifikasi_status_tanah
-
-# Create your tests here.
 
 
 class SoilClassificationTests(SimpleTestCase):
@@ -48,7 +46,7 @@ class SensorMonitoringTests(TestCase):
         self.assertEqual(reverse("administrasi:data_sensor_json"), "/admin/sensor/data/")
         self.assertEqual(reverse("administrasi:pot_list"), "/admin/sensor/pot/")
         self.assertEqual(reverse("admin:index"), "/django-admin/")
-        self.assertEqual(resolve("/admin").func.__module__, "dashboard.views")
+        self.assertEqual(resolve("/admin").func.__name__, "dashboard_main")
         for url in ("/admin", "/admin/", "/admin/sensor/", "/admin/sensor/data/"):
             with self.subTest(url=url):
                 self.assertEqual(self.client.get(url).status_code, 200)
@@ -57,7 +55,6 @@ class SensorMonitoringTests(TestCase):
         self.assertContains(page, 'href="/admin"')
         self.assertContains(page, 'data-json-url="/admin/sensor/data/"')
         self.assertContains(page, "Belum ada riwayat pembacaan sensor.")
-        self.assertContains(page, "Belum ada log penyiraman.")
 
     def test_history_is_latest_twenty_and_polling_never_writes(self):
         DataWeather.objects.create(device=self.device, temp=25.2, rh=61.1, lux=0)
@@ -74,56 +71,9 @@ class SensorMonitoringTests(TestCase):
         self.assertEqual(data["sensor_history"][0]["status_tanah"], "Basah")
         self.assertEqual(data["devices"][0]["soil"], [{"address": 18, "adc": 386}])
         self.assertEqual(data["summary"]["online"], 1)
-        self.assertEqual(len(data["irrigation_logs"]), 1)
         self.client.get(reverse("administrasi:data_sensor_json"))
         self.assertEqual(Telemetry.objects.count(), 21)
-        self.assertEqual(LogPenyiraman.objects.count(), 1)
         self.assertContains(self.client.get("/admin/sensor/"), "POT-TEST")
-
-    def test_log_records_transitions_and_explicit_trigger_without_duplicates(self):
-        self.reading()
-        self.reading()
-        self.reading(pump=True, raw_payload={"trigger": "manual"})
-        self.reading(pump=True, raw_payload={"trigger": "manual"})
-        self.reading(pump=True, valve=True, raw_payload={"trigger": "manual"})
-        self.reading(pump=True, valve=True, raw_payload={"trigger": "dry_soil"})
-        self.reading(raw_payload={"trigger": "dry_soil"})
-        logs = list(LogPenyiraman.objects.order_by("waktu", "pk"))
-        self.assertEqual([log.status for log in logs], ["OFF", "ON", "ON", "ON", "OFF"])
-        self.assertEqual(logs[0].keterangan, "Status awal teramati")
-        self.assertEqual(logs[1].pemicu, "Manual")
-        self.assertEqual(logs[3].pemicu, "Otomatis (Tanah Kering)")
-        self.assertEqual(logs[0].kode_pot, [self.pot.pk])
-
-    def test_dry_soil_does_not_invent_watering_or_a_trigger(self):
-        self.reading(soil_adc=3000)
-        self.reading(soil_adc=3500)
-        log = LogPenyiraman.objects.get()
-        self.assertEqual(log.status, "OFF")
-        self.assertEqual(log.pemicu, "Tidak dilaporkan perangkat")
-
-    def test_unknown_state_and_other_devices_do_not_affect_transitions(self):
-        self.reading(pump=None, valve=None)
-        self.reading(pump=True, valve=None)
-        self.assertFalse(LogPenyiraman.objects.exists())
-        first = self.reading()
-        self.reading(device_id="TEST-SECOND", pump=True, valve=True)
-        self.reading()
-        self.assertEqual(LogPenyiraman.objects.count(), 2)
-        first.temperature = 26
-        first.save()
-        self.assertEqual(LogPenyiraman.objects.count(), 2)
-
-    def test_log_keeps_identity_after_pot_device_and_telemetry_removal(self):
-        reading = self.reading()
-        self.pot.delete()
-        self.device.delete()
-        reading.delete()
-        log = LogPenyiraman.objects.get()
-        self.assertIsNone(log.device)
-        self.assertIsNone(log.telemetry)
-        self.assertEqual(log.identitas_perangkat, "TEST-SENSOR")
-        self.assertEqual(log.kode_pot, ["POT-TEST"])
 
     def test_existing_pot_crud_at_new_urls(self):
         data = {
@@ -146,7 +96,7 @@ class SensorMonitoringTests(TestCase):
 
 
 class WorkerHistoryIntegrationTests(TransactionTestCase):
-    def test_real_payload_shape_saves_snapshots_history_and_transitions(self):
+    def test_real_payload_shape_saves_snapshots_and_history(self):
         # Jalankan callback lokal, tanpa koneksi/publish ke broker produksi.
         from mqtt_worker import on_message
 
@@ -173,11 +123,10 @@ class WorkerHistoryIntegrationTests(TransactionTestCase):
         self.assertEqual(DataSoil.objects.count(), 1)
         self.assertEqual(DataSoil.objects.get().adc, 386)
         self.assertEqual(Telemetry.objects.count(), 2)
-        self.assertEqual(LogPenyiraman.objects.count(), 1)
-        payload["pump"] = True
+        payload["soil"]["nodes"][1]["adc"] = 2501
         deliver("telemetry", json.dumps(payload).encode())
-        self.assertEqual(LogPenyiraman.objects.count(), 2)
-        self.assertEqual(LogPenyiraman.objects.first().status, "ON")
+        self.assertEqual(DataSoil.objects.get().adc, 2501)
+        self.assertEqual(Telemetry.objects.first().soil_adc, 2501)
         deliver("status", b"offline")
         self.assertEqual(Device.objects.get(pk="TEST-WORKER").status_koneksi, "offline")
         deliver("config", b"ignored")

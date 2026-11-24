@@ -4,7 +4,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Refresh sementara setiap 5 detik -->
     <meta http-equiv="refresh" content="5">
+
     <title>Hanjeli Monitoring Dashboard</title>
 
     <style>
@@ -20,6 +23,7 @@
             color: #26352c;
         }
 
+        /* SIDEBAR */
         .sidebar {
             position: fixed;
             width: 230px;
@@ -43,11 +47,13 @@
         .sidebar a { color: inherit; text-decoration: none; display: block; }
         .sidebar a:hover, .sidebar a:focus-visible { text-decoration: underline; }
 
+        /* MAIN CONTENT */
         .main {
             margin-left: 230px;
             padding: 35px;
         }
 
+        /* HEADER */
         .header {
             margin-bottom: 30px;
         }
@@ -56,6 +62,29 @@
             margin-bottom: 8px;
         }
 
+        /* LAST UPDATE */
+        .last-update {
+            margin-top: 18px;
+            padding: 14px 18px;
+            background: #e5eee8;
+            border-left: 4px solid #245b3c;
+            border-radius: 8px;
+            display: inline-flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .last-update span {
+            font-size: 12px;
+            color: #64766a;
+        }
+
+        .last-update strong {
+            font-size: 15px;
+            color: #245b3c;
+        }
+
+        /* SENSOR CARDS */
         .cards {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -85,6 +114,42 @@
             color: #78857c;
         }
 
+        /* SENSOR HISTORY CHART */
+        .sensor-chart-section {
+            margin-top: 30px;
+        }
+
+        .sensor-chart-section > h3 {
+            color: #193f2e;
+            margin-bottom: 8px;
+        }
+
+        .chart-description {
+            color: #78857c;
+            margin-bottom: 20px;
+        }
+
+        .chart-container {
+            background: white;
+            padding: 25px;
+            margin-bottom: 20px;
+            border-radius: 12px;
+            box-shadow: 0 3px 12px #0000000a;
+        }
+
+        .chart-container h3 {
+            color: #193f2e;
+            margin-bottom: 20px;
+            font-size: 17px;
+        }
+
+        .chart-wrapper {
+            position: relative;
+            width: 100%;
+            height: 300px;
+        }
+
+        /* SENSOR HISTORY TABLE */
         .sensor-history {
             background: white;
             padding: 25px;
@@ -132,6 +197,7 @@
             background: #f8faf8;
         }
 
+        /* SYSTEM INFORMATION */
         .status {
             margin-top: 30px;
             background: white;
@@ -158,24 +224,43 @@
             color: #c17a25;
         }
 
-        @media (max-width: 900px) {
+        /* RESPONSIVE */
+        @media (max-width: 1100px) {
             .cards {
                 grid-template-columns: repeat(2, 1fr);
             }
         }
 
-        @media (max-width: 600px) {
+        @media (max-width: 900px) {
             .sidebar {
                 display: none;
             }
 
             .main {
                 margin-left: 0;
+                padding: 25px;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .main {
                 padding: 20px;
             }
 
             .cards {
                 grid-template-columns: 1fr;
+            }
+
+            .chart-container {
+                padding: 15px;
+            }
+
+            .chart-wrapper {
+                height: 250px;
+            }
+
+            .card h2 {
+                font-size: 24px;
             }
         }
     </style>
@@ -183,6 +268,7 @@
 
 <body>
 
+    <!-- SIDEBAR -->
     <div class="sidebar">
         <h2>HANJELI</h2>
         <p><a href="{% url 'dashboard_main' %}" aria-current="page">Dashboard</a></p>
@@ -193,19 +279,33 @@
 
     <div class="main">
 
+        <!-- HEADER -->
         <div class="header">
             <h1>Dashboard Monitoring</h1>
             <p>Monitoring kondisi lingkungan tanaman Hanjeli</p>
+
+            <!-- LAST UPDATE -->
+            <div class="last-update">
+                <span>Last Update</span>
+                <strong id="lastUpdate">
+                    {% if telemetry %}
+                        {{ telemetry.received_at|date:"d M Y, H:i:s" }}
+                    {% else %}
+                        Belum ada data telemetry
+                    {% endif %}
+                </strong>
+            </div>
         </div>
 
+        <!-- ENVIRONMENTAL OVERVIEW -->
         <h3>Environmental Overview</h3>
 
         <div class="cards">
 
-            <!-- Temperature -->
+            <!-- TEMPERATURE -->
             <div class="card">
                 <p>Suhu</p>
-                <h2>
+                <h2 id="temperatureValue">
                     {% if telemetry and telemetry.temperature != None %}
                         {{ telemetry.temperature|floatformat:1 }}
                     {% else %}
@@ -215,10 +315,10 @@
                 </h2>
             </div>
 
-            <!-- Soil ADC -->
+            <!-- SOIL ADC -->
             <div class="card">
                 <p>Sensor Tanah (ADC)</p>
-                <h2>
+                <h2 id="soilValue">
                     {% if telemetry and telemetry.soil_adc != None %}
                         {{ telemetry.soil_adc }}
                     {% else %}
@@ -227,10 +327,10 @@
                 </h2>
             </div>
 
-            <!-- Air Humidity -->
+            <!-- AIR HUMIDITY -->
             <div class="card">
                 <p>Kelembapan Udara</p>
-                <h2>
+                <h2 id="humidityValue">
                     {% if telemetry and telemetry.air_humidity != None %}
                         {{ telemetry.air_humidity|floatformat:1 }}
                     {% else %}
@@ -240,10 +340,10 @@
                 </h2>
             </div>
 
-            <!-- Irrigation Status -->
+            <!-- IRRIGATION STATUS -->
             <div class="card">
                 <p>Status Penyiraman</p>
-                <h2>
+                <h2 id="irrigationValue">
                     {% if telemetry and telemetry.pump != None and telemetry.valve != None %}
                         {% if telemetry.pump or telemetry.valve %}
                             <span class="active">ON</span>
@@ -258,7 +358,42 @@
 
         </div>
 
-        <!-- Sensor Monitoring History -->
+        <!-- SENSOR HISTORY CHART -->
+        <div class="sensor-chart-section">
+
+            <h3>Sensor History Chart</h3>
+
+            <p class="chart-description">
+                Grafik perubahan data sensor berdasarkan 10 pembacaan terakhir
+            </p>
+
+            <!-- TEMPERATURE CHART -->
+            <div class="chart-container">
+                <h3>Temperature (°C)</h3>
+                <div class="chart-wrapper">
+                    <canvas id="temperatureChart"></canvas>
+                </div>
+            </div>
+
+            <!-- AIR HUMIDITY CHART -->
+            <div class="chart-container">
+                <h3>Air Humidity (%)</h3>
+                <div class="chart-wrapper">
+                    <canvas id="humidityChart"></canvas>
+                </div>
+            </div>
+
+            <!-- SOIL ADC CHART -->
+            <div class="chart-container">
+                <h3>Soil ADC</h3>
+                <div class="chart-wrapper">
+                    <canvas id="soilChart"></canvas>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- SENSOR MONITORING HISTORY -->
         <div class="sensor-history">
 
             <h3>Sensor Monitoring History</h3>
@@ -322,7 +457,7 @@
             </div>
         </div>
 
-        <!-- System Information -->
+        <!-- SYSTEM INFORMATION -->
         <div class="status">
 
             <h3>System Information</h3>
@@ -372,11 +507,6 @@
                     {% endif %}
                 </p>
 
-                <p>
-                    Terakhir Diperbarui:
-                    {{ telemetry.received_at|date:"d/m/Y H:i:s" }}
-                </p>
-
             {% else %}
 
                 <p>Belum ada data telemetry yang diterima.</p>
@@ -386,6 +516,129 @@
         </div>
 
     </div>
+
+    <!-- CHART.JS -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- DATA HISTORI DARI DJANGO -->
+    {{ chart_history|json_script:"chart-history-data" }}
+
+    <script>
+        // =========================================
+        // MEMBACA DATA HISTORI DARI DJANGO
+        // =========================================
+
+        const chartHistoryRaw = JSON.parse(
+            document.getElementById("chart-history-data").textContent
+        );
+
+        // Pastikan chartHistory selalu berupa array
+        const chartHistory = Array.isArray(chartHistoryRaw)
+            ? chartHistoryRaw
+            : [];
+
+        // Label waktu untuk sumbu X
+        const labels = chartHistory.map(item => item.time);
+
+
+        // =========================================
+        // FUNGSI MEMBUAT GRAFIK
+        // =========================================
+
+        function createSensorChart(canvasId, label, data, unit) {
+
+            const ctx = document.getElementById(canvasId);
+
+            return new Chart(ctx, {
+                type: "line",
+
+                data: {
+                    labels: labels,
+
+                    datasets: [{
+                        label: label,
+                        data: data,
+                        borderWidth: 2,
+                        tension: 0.3,
+                        pointRadius: 4,
+                        pointHoverRadius: 6,
+                        spanGaps: true,
+                        fill: false
+                    }]
+                },
+
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+
+                    interaction: {
+                        intersect: false,
+                        mode: "index"
+                    },
+
+                    plugins: {
+                        legend: {
+                            display: true
+                        }
+                    },
+
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: "Waktu"
+                            }
+                        },
+
+                        y: {
+                            title: {
+                                display: true,
+                                text: unit
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+
+        // =========================================
+        // MEMBUAT 3 GRAFIK SENSOR
+        // =========================================
+
+        const temperatureChart = createSensorChart(
+            "temperatureChart",
+            "Temperature",
+            chartHistory.map(item => item.temperature),
+            "Temperature (°C)"
+        );
+
+        const humidityChart = createSensorChart(
+            "humidityChart",
+            "Air Humidity",
+            chartHistory.map(item => item.air_humidity),
+            "Humidity (%)"
+        );
+
+        const soilChart = createSensorChart(
+            "soilChart",
+            "Soil ADC",
+            chartHistory.map(item => item.soil_adc),
+            "ADC Value"
+        );
+
+
+        // =========================================
+        // DEBUGGING DATA
+        // =========================================
+
+        console.log("Chart History Raw:", chartHistoryRaw);
+        console.log("Chart History Array:", chartHistory);
+        console.log("Temperature Chart:", temperatureChart);
+        console.log("Humidity Chart:", humidityChart);
+        console.log("Soil Chart:", soilChart);
+
+    </script>
 
 </body>
 </html>

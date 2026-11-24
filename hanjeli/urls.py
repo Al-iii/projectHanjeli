@@ -6,7 +6,6 @@ urls.py - Konfigurasi URL utama proyek Smart Agriculture Hanjeli.
 from django.contrib import admin
 from django.urls import include, path
 from admin.views import dashboard_main
-from dashboard.views import index as monitoring_dashboard
 from django.conf.urls.static import static
 from django.conf import settings
 
@@ -16,8 +15,8 @@ urlpatterns = [
 
     # Dashboard administrasi
     path("admin-dashboard/", dashboard_main),
-    path("admin", monitoring_dashboard, name="dashboard_main"),
-    path("admin/", monitoring_dashboard, name="dashboard_monitoring_slash"),
+    path("admin", dashboard_main, name="dashboard_main"),
+    path("admin/", dashboard_main, name="dashboard_monitoring_slash"),
 
     # Dashboard modul lainnya
     path("main-dashboard/", include("dashboard.urls")),

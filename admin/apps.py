@@ -11,7 +11,3 @@ class AdminConfig(AppConfig):
     # Label unik agar tidak bentrok dengan django.contrib.admin
     label = "administrasi"
     verbose_name = "Administrasi Smart Agriculture"
-
-    def ready(self):
-        # Hanya mendaftarkan receiver; tidak membuka koneksi MQTT saat startup.
-        from . import signals  # noqa: F401

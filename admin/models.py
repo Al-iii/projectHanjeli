@@ -265,32 +265,3 @@ class SoilSensor(models.Model):
     def __str__(self) -> str:
         """Representasi string: ID soil sensor dan nama Control Box induknya."""
         return f"Soil Sensor #{self.id_soil} → {self.id_box.nama}"
-
-
-class LogPenyiraman(models.Model):
-    """Perubahan pompa/valve yang benar-benar dilaporkan oleh telemetry."""
-
-    device = models.ForeignKey(
-        Device, on_delete=models.SET_NULL, null=True, related_name="log_penyiraman"
-    )
-    # Identitas dan pot disalin saat kejadian agar riwayat tidak berubah
-    # ketika perangkat dipindahkan ke pot lain atau data pot dihapus.
-    identitas_perangkat = models.CharField(max_length=100, db_index=True)
-    kode_pot = models.JSONField(default=list, blank=True)
-    telemetry = models.OneToOneField(
-        "mqtt_receiver.Telemetry", on_delete=models.SET_NULL,
-        null=True, related_name="log_penyiraman",
-    )
-    waktu = models.DateTimeField(default=timezone.now, db_index=True)
-    status = models.CharField(max_length=3, choices=(("ON", "ON"), ("OFF", "OFF")))
-    pump = models.BooleanField()
-    valve = models.BooleanField()
-    pemicu = models.CharField(max_length=255, default="Tidak dilaporkan perangkat")
-    keterangan = models.CharField(max_length=255, blank=True)
-    adc = models.PositiveIntegerField(null=True, blank=True)
-
-    class Meta:
-        ordering = ["-waktu", "-pk"]
-
-    def __str__(self):
-        return f"{self.identitas_perangkat}: {self.status} ({self.waktu})"
