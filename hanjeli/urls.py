@@ -3,31 +3,23 @@
 urls.py - Konfigurasi URL utama proyek Smart Agriculture Hanjeli.
 """
 
+from django.conf import settings
+from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
-from admin.views import dashboard_main
-from django.conf.urls.static import static
-from django.conf import settings
 
 urlpatterns = [
-    # Dashboard utama
+    # Dashboard utama (/) dan API telemetry. Include hanya sekali agar
+    # nama route dashboard_main/latest_telemetry tidak terdaftar berulang.
     path("", include("dashboard.urls")),
 
-    # Dashboard administrasi
-    path("admin-dashboard/", dashboard_main),
-    path("admin", dashboard_main, name="dashboard_main"),
-    path("admin/", dashboard_main, name="dashboard_monitoring_slash"),
+    # Modul sensor dan CRUD pot memiliki prefix tersendiri.
+    path("sensor/", include("admin.urls", namespace="administrasi")),
 
-    # Dashboard modul lainnya
-    path("main-dashboard/", include("dashboard.urls")),
-
-    # Django Admin
+    # Django Admin terpisah dari dashboard monitoring.
     path("django-admin/", admin.site.urls),
+    path("prediktor/", include("prediktor.urls")),
 
-    # Modul administrasi Smart Agriculture
-    path("admin/sensor/", include("admin.urls", namespace="administrasi")),
-    
-    path('prediktor/', include('prediktor.urls')),
 ]
 
 if settings.DEBUG:
