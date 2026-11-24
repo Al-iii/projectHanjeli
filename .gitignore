@@ -7,3 +7,6 @@ db.sqlite3
 # dataset_hanjeli/images/
 # dataset_hanjeli/labels/
 runs/
+/weights/corn/*.pt
+/media/corn/
+/weights/corn/samples/

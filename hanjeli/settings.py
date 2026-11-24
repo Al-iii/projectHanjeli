@@ -74,6 +74,11 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
+        'OPTIONS': {
+            'timeout': 10,
+            # Acquire the write reservation before update_or_create reads.
+            'transaction_mode': 'IMMEDIATE',
+        },
     }
 }
 
@@ -114,3 +119,11 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+
+# Konfigurasi terpisah untuk model jagung; CPU merupakan default portabel.
+CORN_YOLO_WEIGHTS = BASE_DIR / os.environ.get('CORN_YOLO_WEIGHTS', 'weights/corn/corn_Leaf_model.pt')
+CORN_YOLO_CONFIDENCE = float(os.environ.get('CORN_YOLO_CONFIDENCE', '0.25'))
+CORN_YOLO_DEVICE = os.environ.get('CORN_YOLO_DEVICE', 'cpu')
+CORN_UPLOAD_MAX_BYTES = 10 * 1024 * 1024
+CORN_UPLOAD_MAX_DIMENSION = 6000
+CORN_UPLOAD_MAX_PIXELS = 20_000_000

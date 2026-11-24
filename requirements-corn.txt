@@ -1,0 +1,2 @@
+# Tambahan inferensi, versi yang diuji di venv proyek. Tidak mengubah paket lama.
+ultralytics==8.4.202

@@ -14,6 +14,8 @@ django.setup()
 
 from admin.models import DataSoil, DataWeather, Device  # noqa: E402
 from mqtt_receiver.mqtt_client import save_telemetry  # noqa: E402
+from mqtt_receiver.db_retry import atomic_message  # noqa: E402
+from django.db import connections, transaction  # noqa: E402
 
 BROKER_HOST = "mqtt.sikc.net"
 BROKER_PORT = 1883
@@ -64,6 +66,7 @@ def on_message(client, userdata, message):
         logger.exception("Gagal memproses pesan pada %s", message.topic)
 
 
+@atomic_message
 def process_status(device_id, status):
     """Simpan status LWT plain text; payload status bukan JSON."""
     if status not in (Device.STATUS_ONLINE, Device.STATUS_OFFLINE):
@@ -73,9 +76,10 @@ def process_status(device_id, status):
         device_id=device_id,
         defaults={"status_koneksi": status},
     )
-    logger.info("Status %s = %s", device_id, status)
+    transaction.on_commit(lambda: logger.info("Status %s = %s", device_id, status))
 
 
+@atomic_message
 def process_telemetry(topic_device_id, payload):
     """Upsert Device, satu node cuaca, dan semua node tanah ber-ADC."""
     if not isinstance(payload, dict):
@@ -130,7 +134,7 @@ def process_telemetry(topic_device_id, payload):
 
     # Administrasi memakai snapshot; dashboard memakai riwayat Telemetry.
     save_telemetry({**payload, "device_id": device_id})
-    logger.info("Telemetry tersimpan untuk %s", device_id)
+    transaction.on_commit(lambda: logger.info("Telemetry tersimpan untuk %s", device_id))
 
 
 def main():
@@ -142,8 +146,14 @@ def main():
     client.on_connect = on_connect
     client.on_message = on_message
     client.reconnect_delay_set(min_delay=1, max_delay=30)
-    client.connect(BROKER_HOST, BROKER_PORT, keepalive=60)
-    client.loop_forever()
+    try:
+        client.connect(BROKER_HOST, BROKER_PORT, keepalive=60)
+        client.loop_forever()
+    except KeyboardInterrupt:
+        logger.info("Worker dihentikan oleh pengguna.")
+    finally:
+        client.disconnect()
+        connections.close_all()
 
 
 if __name__ == "__main__":

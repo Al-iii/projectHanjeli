@@ -10,7 +10,7 @@ from paho.mqtt import client as mqtt
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'hanjeli.settings')
 django.setup()
 
-from django.db import close_old_connections
+from django.db import close_old_connections, connection, transaction
 from .models import Telemetry
 
 
@@ -63,7 +63,9 @@ def save_telemetry(payload):
     weather = get_online_node(payload, 'weather')
     soil = get_online_node(payload, 'soil')
 
-    close_old_connections()
+    owns_connection = not connection.in_atomic_block
+    if owns_connection:
+        close_old_connections()
 
     try:
         telemetry = Telemetry.objects.create(
@@ -89,15 +91,11 @@ def save_telemetry(payload):
             raw_payload=payload
         )
 
-        print('Data berhasil disimpan ke database!')
-        print(f'Device ID: {telemetry.device_id}')
-        print(f'Suhu: {telemetry.temperature}')
-        print(f'Kelembapan udara: {telemetry.air_humidity}')
-        print(f'ADC tanah: {telemetry.soil_adc}')
-        print(f'Waktu: {telemetry.received_at}')
+        transaction.on_commit(lambda: print(f'Telemetry tersimpan: {telemetry.device_id} ({telemetry.received_at})'))
 
     finally:
-        close_old_connections()
+        if owns_connection:
+            close_old_connections()
 
 
 def on_connect(client, userdata, flags, reason_code, properties):

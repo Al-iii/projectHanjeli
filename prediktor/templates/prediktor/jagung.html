@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% block title %}Deteksi Daun Jagung | Smart Agriculture{% endblock %}
+{% block content %}
+<h1 class="h3">Deteksi Penyakit Daun Jagung</h1>
+<p class="text-secondary">Unggah foto daun jagung untuk melihat prediksi model YOLO. Hasil ini bukan diagnosis pasti dan belum ditujukan untuk hanjeli.</p>
+<div class="card border-0 shadow-sm mb-4"><div class="card-body">
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form.gambar.label_tag }}
+    {{ form.gambar }}
+    {% for error in form.gambar.errors %}<p class="text-danger mt-2" role="alert">{{ error }}</p>{% endfor %}
+    <p class="small text-secondary mt-2">JPEG, PNG, atau WebP; maksimal 10 MB, 6000 piksel per sisi, dan 20 megapiksel. Ambang confidence: {{ threshold_percent|floatformat:0 }}% (nilai percobaan, bukan jaminan akurasi).</p>
+    <button class="btn btn-success" type="submit">Jalankan deteksi</button>
+  </form>
+</div></div>
+{% if error %}<div class="alert alert-danger" role="alert">{{ error }}</div>{% endif %}
+{% if has_result %}
+<div class="row g-3 mb-4">
+  <div class="col-12 col-lg-6"><div class="card h-100"><div class="card-body">
+    <h2 class="h5">Gambar asli</h2><img src="{{ original_url }}" class="img-fluid rounded" alt="Foto daun jagung dengan orientasi diperbaiki">
+  </div></div></div>
+  <div class="col-12 col-lg-6"><div class="card h-100"><div class="card-body">
+    <h2 class="h5">Hasil anotasi</h2><img src="{{ annotated_url }}" class="img-fluid rounded" alt="Hasil deteksi YOLO beserta kotak dan label">
+  </div></div></div>
+</div>
+<h2 class="h5">Jumlah deteksi: {{ detections|length }}</h2>
+<p class="small text-secondary">Jumlah kotak deteksi, bukan jumlah tanaman. Label mengikuti nama kelas asli model.</p>
+{% if detections %}
+<div class="table-responsive"><table class="table table-striped align-middle">
+  <thead><tr><th scope="col">Deteksi</th><th scope="col">Label kelas</th><th scope="col">Confidence</th></tr></thead>
+  <tbody>{% for detection in detections %}<tr><td>{{ forloop.counter }}</td><td>{{ detection.label }}</td><td>{{ detection.confidence_percent|floatformat:2 }}%</td></tr>{% endfor %}</tbody>
+</table></div>
+{% else %}<div class="alert alert-info">Tidak ada objek yang terdeteksi pada ambang confidence ini</div>{% endif %}
+{% endif %}
+{% endblock %}
