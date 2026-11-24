@@ -13,7 +13,6 @@ from mqtt_receiver.models import Telemetry
 ADC_KERING = 2500
 ADC_BASAH = 1200
 
-
 def klasifikasi_status_tanah(nilai_adc):
     """Klasifikasikan ADC: lebih tinggi berarti tanah lebih kering."""
     if nilai_adc is None or isinstance(nilai_adc, bool):
@@ -29,7 +28,6 @@ def klasifikasi_status_tanah(nilai_adc):
         return "Basah"
     return "Normal"
 
-
 def _klasifikasi_status_perangkat(soil_nodes):
     """Pakai median ADC node valid agar status perangkat mewakili sensornya."""
     nilai_valid = sorted(
@@ -44,9 +42,11 @@ def _klasifikasi_status_perangkat(soil_nodes):
     if len(nilai_valid) % 2:
         nilai_perwakilan = nilai_valid[tengah]
     else:
-        nilai_perwakilan = (nilai_valid[tengah - 1] + nilai_valid[tengah]) / 2
-    return klasifikasi_status_tanah(nilai_perwakilan)
+        nilai_perwakilan = (
+            nilai_valid[tengah - 1] + nilai_valid[tengah]
+        ) / 2
 
+    return klasifikasi_status_tanah(nilai_perwakilan)
 
 def _get_devices_with_latest_data():
     """Load devices and their latest weather and soil snapshots efficiently."""
@@ -69,8 +69,8 @@ def _get_devices_with_latest_data():
         device.weather = device.weather_terbaru[0] if device.weather_terbaru else None
         device.soil = device.soil_terbaru
         device.status_tanah = _klasifikasi_status_perangkat(device.soil)
-    return devices
 
+    return devices
 
 # ==========================================
 # KELOLA SENSOR
@@ -97,7 +97,6 @@ def kelola_sensor(request):
     }
 
     return render(request, "administrasi/kelola_sensor.html", context)
-
 
 def data_sensor_json(request):
     """Return the latest device and sensor readings for dashboard polling."""
@@ -140,7 +139,6 @@ def data_sensor_json(request):
 
     return JsonResponse(payload)
 
-
 # ==========================================
 # KELOLA POT
 # ==========================================
@@ -155,7 +153,6 @@ def pot_list(request):
         {"pots": pots},
     )
 
-
 def pot_create(request):
     """Buat pot baru dari form yang valid."""
     form = PotForm(request.POST if request.method == "POST" else None)
@@ -169,7 +166,6 @@ def pot_create(request):
         "administrasi/pot_form.html",
         {"form": form, "judul": "Tambah Pot"},
     )
-
 
 def pot_update(request, kode_pot):
     """Edit data pot berdasarkan primary key kode_pot."""
@@ -190,7 +186,6 @@ def pot_update(request, kode_pot):
         {"form": form, "judul": "Edit Pot", "pot": pot},
     )
 
-
 def pot_delete(request, kode_pot):
     """Hapus pot hanya setelah konfirmasi dikirim dengan POST."""
     pot = get_object_or_404(Pot, pk=kode_pot)
@@ -205,7 +200,6 @@ def pot_delete(request, kode_pot):
         {"pot": pot},
     )
 
-
 # ==========================================
 # DASHBOARD UTAMA - DATA MQTT
 # ==========================================
@@ -213,17 +207,35 @@ def pot_delete(request, kode_pot):
 def dashboard_main(request):
     """Render dashboard utama dengan data telemetry MQTT."""
 
+    # Data telemetry terbaru untuk dashboard dan Last Update
     telemetry = Telemetry.objects.order_by("-received_at").first()
 
-    history = Telemetry.objects.order_by("-received_at")[:10]
+    # Mengambil 10 data telemetry terakhir
+    latest_history = list(
+        Telemetry.objects.order_by("-received_at")[:10]
+    )
+
+    # Data untuk tabel histori (terbaru di atas)
+    history = latest_history
+
+    # Data untuk grafik (lama ke baru)
+    chart_history = [
+        {
+            "time": item.received_at.strftime("%H:%M:%:%S"),
+            "temperature": item.temperature,
+            "air_humidity": item.air_humidity,
+            "soil_adc": item.soil_adc,
+        }
+        for item in reversed(latest_history)
+    ]
 
     context = {
         "telemetry": telemetry,
         "history": history,
+        "chart_history": chart_history,
     }
 
     return render(request, "dashboard/index.html", context)
-
 
 # ==========================================
 # API DATA TELEMETRY TERBARU

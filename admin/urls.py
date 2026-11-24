@@ -25,6 +25,11 @@ urlpatterns = [
         views.data_sensor_json,
         name="data_sensor_json",
     ),
+    path(
+    "dashboard/data/",
+    views.telemetry_latest_json,
+    name="telemetry_latest_json",
+    ),
 
     # --- Placeholder untuk fitur mendatang ---
     # path("pot/",        views.kelola_pot,        name="kelola_pot"),
