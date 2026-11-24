@@ -41,20 +41,24 @@ class SensorMonitoringTests(TestCase):
         return Telemetry.objects.create(**fields)
 
     def test_routes_sidebar_and_empty_states(self):
-        self.assertEqual(reverse("dashboard_main"), "/admin")
-        self.assertEqual(reverse("administrasi:kelola_sensor"), "/admin/sensor/")
-        self.assertEqual(reverse("administrasi:data_sensor_json"), "/admin/sensor/data/")
-        self.assertEqual(reverse("administrasi:pot_list"), "/admin/sensor/pot/")
+        self.assertEqual(reverse("dashboard_main"), "/")
+        self.assertEqual(reverse("administrasi:kelola_sensor"), "/sensor/")
+        self.assertEqual(reverse("administrasi:data_sensor_json"), "/sensor/data/")
+        self.assertEqual(reverse("administrasi:pot_list"), "/sensor/pot/")
         self.assertEqual(reverse("admin:index"), "/django-admin/")
-        self.assertEqual(resolve("/admin").func.__name__, "dashboard_main")
-        for url in ("/admin", "/admin/", "/admin/sensor/", "/admin/sensor/data/"):
+        self.assertEqual(resolve("/").func.__name__, "dashboard_main")
+        for url in ("/", "/sensor/", "/sensor/data/"):
             with self.subTest(url=url):
                 self.assertEqual(self.client.get(url).status_code, 200)
-        self.assertContains(self.client.get("/admin"), 'href="/admin/sensor/"')
-        page = self.client.get("/admin/sensor/")
-        self.assertContains(page, 'href="/admin"')
-        self.assertContains(page, 'data-json-url="/admin/sensor/data/"')
+        self.assertContains(self.client.get("/"), 'href="/sensor/"')
+        page = self.client.get("/sensor/")
+        self.assertContains(page, 'href="/"')
+        self.assertContains(page, 'data-json-url="/sensor/data/"')
         self.assertContains(page, "Belum ada riwayat pembacaan sensor.")
+        self.assertRedirects(self.client.get("/sensor"), "/sensor/", status_code=301)
+        for old_url in ("/admin", "/admin/", "/admin/sensor/", "/admin-dashboard/", "/main-dashboard/"):
+            with self.subTest(old_url=old_url):
+                self.assertEqual(self.client.get(old_url).status_code, 404)
 
     def test_history_is_latest_twenty_and_polling_never_writes(self):
         DataWeather.objects.create(device=self.device, temp=25.2, rh=61.1, lux=0)
@@ -73,7 +77,7 @@ class SensorMonitoringTests(TestCase):
         self.assertEqual(data["summary"]["online"], 1)
         self.client.get(reverse("administrasi:data_sensor_json"))
         self.assertEqual(Telemetry.objects.count(), 21)
-        self.assertContains(self.client.get("/admin/sensor/"), "POT-TEST")
+        self.assertContains(self.client.get("/sensor/"), "POT-TEST")
 
     def test_existing_pot_crud_at_new_urls(self):
         data = {
@@ -82,16 +86,16 @@ class SensorMonitoringTests(TestCase):
             "device_terpasang": self.device.pk, "keterangan": "",
         }
         response = self.client.post(reverse("administrasi:pot_create"), data)
-        self.assertRedirects(response, "/admin/sensor/pot/")
+        self.assertRedirects(response, "/sensor/pot/")
         edit_url = reverse("administrasi:pot_update", args=["POT-NEW"])
         self.assertEqual(self.client.get(edit_url).status_code, 200)
         data["fase_pertumbuhan"] = "Vegetatif"
-        self.assertRedirects(self.client.post(edit_url, data), "/admin/sensor/pot/")
+        self.assertRedirects(self.client.post(edit_url, data), "/sensor/pot/")
         self.assertEqual(Pot.objects.get(pk="POT-NEW").fase_pertumbuhan, "Vegetatif")
         delete_url = reverse("administrasi:pot_delete", args=["POT-NEW"])
         self.assertEqual(self.client.get(delete_url).status_code, 200)
         self.assertTrue(Pot.objects.filter(pk="POT-NEW").exists())
-        self.assertRedirects(self.client.post(delete_url), "/admin/sensor/pot/")
+        self.assertRedirects(self.client.post(delete_url), "/sensor/pot/")
         self.assertFalse(Pot.objects.filter(pk="POT-NEW").exists())
 
 
