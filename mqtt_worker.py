@@ -3,6 +3,7 @@
 import json
 import logging
 import os
+import uuid
 
 import django
 import paho.mqtt.client as mqtt
@@ -12,10 +13,11 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "hanjeli.settings")
 django.setup()
 
 from admin.models import DataSoil, DataWeather, Device  # noqa: E402
+from mqtt_receiver.mqtt_client import save_telemetry  # noqa: E402
 
 BROKER_HOST = "mqtt.sikc.net"
 BROKER_PORT = 1883
-CLIENT_ID = "hanjeli-django-worker"
+CLIENT_ID = os.getenv("MQTT_CLIENT_ID") or f"hanjeli-worker-{uuid.uuid4().hex[:12]}"
 DEVICE_TOPIC = "agriculture/#"
 
 logging.basicConfig(
@@ -126,6 +128,8 @@ def process_telemetry(topic_device_id, payload):
             defaults={"adc": adc},
         )
 
+    # Administrasi memakai snapshot; dashboard memakai riwayat Telemetry.
+    save_telemetry({**payload, "device_id": device_id})
     logger.info("Telemetry tersimpan untuk %s", device_id)
 
 
