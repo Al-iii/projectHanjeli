@@ -1,9 +1,13 @@
 
 """View dashboard Modul Administrasi Smart Agriculture."""
 
+import math
+
 from django.db.models import Prefetch
 from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
+from django.utils import timezone
+from django.views.decorators.cache import never_cache
 
 from .models import DataSoil, DataWeather, Device, Pot
 from .forms import PotForm
@@ -18,9 +22,12 @@ def klasifikasi_status_tanah(nilai_adc):
     """Klasifikasikan ADC: lebih tinggi berarti tanah lebih kering."""
     if nilai_adc is None or isinstance(nilai_adc, bool):
         return "Tidak Ada Data"
+
     try:
         nilai_adc = float(nilai_adc)
     except (TypeError, ValueError):
+        return "Tidak Ada Data"
+    if not math.isfinite(nilai_adc) or nilai_adc < 0:
         return "Tidak Ada Data"
 
     if nilai_adc > ADC_KERING:
@@ -35,21 +42,28 @@ def _klasifikasi_status_perangkat(soil_nodes):
     nilai_valid = sorted(
         node.adc
         for node in soil_nodes
-        if node.adc is not None and isinstance(node.adc, (int, float))
+        if node.adc is not None
+        and isinstance(node.adc, (int, float))
     )
+
     if not nilai_valid:
         return "Tidak Ada Data"
 
     tengah = len(nilai_valid) // 2
+
     if len(nilai_valid) % 2:
         nilai_perwakilan = nilai_valid[tengah]
     else:
-        nilai_perwakilan = (nilai_valid[tengah - 1] + nilai_valid[tengah]) / 2
+        nilai_perwakilan = (
+            nilai_valid[tengah - 1] + nilai_valid[tengah]
+        ) / 2
+
     return klasifikasi_status_tanah(nilai_perwakilan)
 
 
 def _get_devices_with_latest_data():
     """Load devices and their latest weather and soil snapshots efficiently."""
+
     devices = list(
         Device.objects.prefetch_related(
             Prefetch(
@@ -66,10 +80,45 @@ def _get_devices_with_latest_data():
     )
 
     for device in devices:
-        device.weather = device.weather_terbaru[0] if device.weather_terbaru else None
+        device.weather = (
+            device.weather_terbaru[0]
+            if device.weather_terbaru
+            else None
+        )
+
         device.soil = device.soil_terbaru
-        device.status_tanah = _klasifikasi_status_perangkat(device.soil)
+        device.status_tanah = _klasifikasi_status_perangkat(
+            device.soil
+        )
+
     return devices
+
+def _get_sensor_history():
+    """Riwayat memakai Telemetry, bukan snapshot yang terus ditimpa worker."""
+    history = list(Telemetry.objects.order_by("-received_at", "-pk")[:20])
+    pots_by_device = {}
+    for device_id, kode_pot in Pot.objects.filter(
+        device_terpasang_id__in={item.device_id for item in history}
+    ).values_list("device_terpasang_id", "kode_pot"):
+        pots_by_device.setdefault(device_id, []).append(kode_pot)
+
+    return {
+        "sensor_history": [
+            {
+                "id": item.pk,
+                "waktu": item.received_at.isoformat(),
+                "waktu_label": timezone.localtime(item.received_at).strftime("%d/%m/%Y %H:%M:%S"),
+                "device_id": item.device_id,
+                # Telemetry lama tidak menyimpan relasi pot saat pengukuran.
+                "pots": pots_by_device.get(item.device_id, []),
+                "temp": item.temperature,
+                "rh": item.air_humidity,
+                "adc": item.soil_adc,
+                "status_tanah": klasifikasi_status_tanah(item.soil_adc),
+            }
+            for item in history
+        ],
+    }
 
 
 # ==========================================
@@ -78,9 +127,11 @@ def _get_devices_with_latest_data():
 
 def kelola_sensor(request):
     """Ambil perangkat beserta snapshot weather dan soil terakhirnya."""
+
     devices = _get_devices_with_latest_data()
 
     total = len(devices)
+
     online = sum(
         device.status_koneksi == Device.STATUS_ONLINE
         for device in devices
@@ -95,12 +146,19 @@ def kelola_sensor(request):
         "judul_halaman": "Kelola Sensor",
         "menu_aktif": "kelola_sensor",
     }
+    context.update(_get_sensor_history())
 
-    return render(request, "administrasi/kelola_sensor.html", context)
+    return render(
+        request,
+        "administrasi/kelola_sensor.html",
+        context,
+    )
 
 
+@never_cache
 def data_sensor_json(request):
     """Return the latest device and sensor readings for dashboard polling."""
+
     devices = _get_devices_with_latest_data()
 
     payload = {
@@ -118,7 +176,10 @@ def data_sensor_json(request):
                     else None
                 ),
                 "soil": [
-                    {"address": node.address, "adc": node.adc}
+                    {
+                        "address": node.address,
+                        "adc": node.adc,
+                    }
                     for node in device.soil
                 ],
                 "status_tanah": device.status_tanah,
@@ -138,6 +199,7 @@ def data_sensor_json(request):
         },
     }
 
+    payload.update(_get_sensor_history())
     return JsonResponse(payload)
 
 
@@ -147,7 +209,10 @@ def data_sensor_json(request):
 
 def pot_list(request):
     """Tampilkan seluruh pot dengan perangkat terkait."""
-    pots = Pot.objects.select_related("device_terpasang").all()
+
+    pots = Pot.objects.select_related(
+        "device_terpasang"
+    ).all()
 
     return render(
         request,
@@ -158,7 +223,10 @@ def pot_list(request):
 
 def pot_create(request):
     """Buat pot baru dari form yang valid."""
-    form = PotForm(request.POST if request.method == "POST" else None)
+
+    form = PotForm(
+        request.POST if request.method == "POST" else None
+    )
 
     if request.method == "POST" and form.is_valid():
         form.save()
@@ -167,13 +235,20 @@ def pot_create(request):
     return render(
         request,
         "administrasi/pot_form.html",
-        {"form": form, "judul": "Tambah Pot"},
+        {
+            "form": form,
+            "judul": "Tambah Pot",
+        },
     )
 
 
 def pot_update(request, kode_pot):
     """Edit data pot berdasarkan primary key kode_pot."""
-    pot = get_object_or_404(Pot, pk=kode_pot)
+
+    pot = get_object_or_404(
+        Pot,
+        pk=kode_pot,
+    )
 
     form = PotForm(
         request.POST if request.method == "POST" else None,
@@ -187,13 +262,21 @@ def pot_update(request, kode_pot):
     return render(
         request,
         "administrasi/pot_form.html",
-        {"form": form, "judul": "Edit Pot", "pot": pot},
+        {
+            "form": form,
+            "judul": "Edit Pot",
+            "pot": pot,
+        },
     )
 
 
 def pot_delete(request, kode_pot):
     """Hapus pot hanya setelah konfirmasi dikirim dengan POST."""
-    pot = get_object_or_404(Pot, pk=kode_pot)
+
+    pot = get_object_or_404(
+        Pot,
+        pk=kode_pot,
+    )
 
     if request.method == "POST":
         pot.delete()
@@ -213,16 +296,47 @@ def pot_delete(request, kode_pot):
 def dashboard_main(request):
     """Render dashboard utama dengan data telemetry MQTT."""
 
-    telemetry = Telemetry.objects.order_by("-received_at").first()
+    # Mengambil data telemetry paling baru
+    telemetry = Telemetry.objects.order_by(
+        "-received_at"
+    ).first()
 
-    history = Telemetry.objects.order_by("-received_at")[:10]
+    # Mengambil 10 data terbaru untuk histori
+    latest_history = list(
+        Telemetry.objects.order_by("-received_at")[:10]
+    )
+
+    # Data untuk tabel histori
+    history = latest_history
+
+    # Data untuk grafik (lama ke baru)
+    chart_history = [
+        {
+            "time": timezone.localtime(item.received_at).strftime("%H:%M:%S"),
+            "temperature": item.temperature,
+            "air_humidity": item.air_humidity,
+            "soil_adc": item.soil_adc,
+        }
+        for item in reversed(latest_history)
+    ]
 
     context = {
         "telemetry": telemetry,
         "history": history,
+        "chart_history": chart_history,
     }
 
-    return render(request, "dashboard/index.html", context)
+    # Debug untuk mengecek data sebelum dikirim ke template
+    print("=" * 50)
+    print("JUMLAH CHART:", len(chart_history))
+    print("ISI CHART:", chart_history)
+    print("=" * 50)
+
+    return render(
+        request,
+        "dashboard/index.html",
+        context,
+    )
 
 
 # ==========================================
@@ -232,7 +346,9 @@ def dashboard_main(request):
 def telemetry_latest_json(request):
     """Mengirim data telemetry terbaru dalam format JSON."""
 
-    telemetry = Telemetry.objects.order_by("-received_at").first()
+    telemetry = Telemetry.objects.order_by(
+        "-received_at"
+    ).first()
 
     if telemetry is None:
         return JsonResponse({
