@@ -10,3 +10,9 @@ runs/
 /weights/corn/*.pt
 /media/corn/
 /weights/corn/samples/
+/vendor/kornrows/
+/.venv-kornrows/
+/weights/kornrows/*.pt
+/media/kornrows/
+/weights/corn_leaf_yolo11/*.pt
+/media/corn_leaf_yolo11/

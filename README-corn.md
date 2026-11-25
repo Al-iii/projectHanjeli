@@ -1,5 +1,10 @@
 # Deteksi daun jagung
 
+Pembaruan 25 November 2026: halaman kini memiliki pilihan model lama dan YOLO11
+wjxn13. Catatan `result.json` menyimpan identitas model dan hasil tiap unggahan.
+Lihat [README-corn-yolo11.md](README-corn-yolo11.md) untuk konfigurasi baru dan
+bukti inferensi nyata. Catatan verifikasi di bawah adalah pengujian awal model lama.
+
 Halaman: http://127.0.0.1:8000/prediktor/jagung/ . Navigasi tersedia pada dashboard,
 sidebar administrasi, dan halaman unggah hanjeli. Hasil hanya prediksi model untuk
 foto daun jagung, bukan diagnosis pasti atau model hanjeli. Tidak ada pelatihan ulang.
@@ -77,8 +82,8 @@ Form memeriksa isi JPEG/PNG/WebP, ukuran maksimal 10 MB, 6000 piksel per sisi,
 unggahan tidak digunakan. Gambar asli untuk tampilan dinormalisasi orientasinya
 dan dienkode ulang ke RGB JPEG tanpa metadata, bukan salinan byte-for-byte.
 Gambar ini dan anotasi disimpan di `media/corn/<UUID>/original.jpg` dan
-`annotated.jpg`. Hasil deteksi terstruktur hanya hidup pada respons request;
-tidak ada riwayat database, dan tidak menulis Pot, Bibit, atau Pengamatan.
+`annotated.jpg`. Hasil terstruktur kini disimpan bersama identitas model dalam
+`result.json`; tidak ada riwayat database, dan tidak menulis Pot, Bibit, atau Pengamatan.
 Berkas tetap tersimpan sampai dibersihkan manual; refresh POST menjalankan ulang
 deteksi. Folder media tersebut dan bobot diabaikan Git secara spesifik.
 

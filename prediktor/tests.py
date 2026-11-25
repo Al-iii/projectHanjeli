@@ -62,6 +62,9 @@ class CornPageTests(SimpleTestCase):
         self.settings_override = override_settings(MEDIA_ROOT=self.directory.name)
         self.settings_override.enable()
         self.addCleanup(self.settings_override.disable)
+        identity = patch('prediktor.views.model_identity', return_value={'id': 'hassan', 'title': 'Model lama — HassanCodesIt'})
+        identity.start()
+        self.addCleanup(identity.stop)
 
     def test_get_and_csrf(self):
         self.assertContains(self.client.get(self.url), 'csrfmiddlewaretoken')

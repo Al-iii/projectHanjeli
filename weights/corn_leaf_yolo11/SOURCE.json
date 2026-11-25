@@ -1,0 +1,13 @@
+{
+  "repository": "https://github.com/wjxn13/corn-leaf-disease-detector",
+  "branch": "main",
+  "commit": "a662066aa41977c0eb1efd1b278a49a87c300fbe",
+  "download_url": "https://media.githubusercontent.com/media/wjxn13/corn-leaf-disease-detector/a662066aa41977c0eb1efd1b278a49a87c300fbe/best.pt",
+  "filename": "best.pt",
+  "size_bytes": 19175123,
+  "sha256": "c60b9bf7c9e85270fbc4656adc976f07a2cb082607366f373717003d42c47686",
+  "task": "detect",
+  "names": {"0": "Corn__CommonRust", "1": "Corn__GrayLeafSpot", "2": "Corn__Healthy", "3": "Corn__NorthernLeafBlight"},
+  "license": "MIT (upstream LICENSE and README statement for weights)",
+  "verified_on": "2026-11-25"
+}

@@ -127,3 +127,16 @@ CORN_YOLO_DEVICE = os.environ.get('CORN_YOLO_DEVICE', 'cpu')
 CORN_UPLOAD_MAX_BYTES = 10 * 1024 * 1024
 CORN_UPLOAD_MAX_DIMENSION = 6000
 CORN_UPLOAD_MAX_PIXELS = 20_000_000
+
+CORN_YOLO11_WEIGHTS = BASE_DIR / os.environ.get('CORN_YOLO11_WEIGHTS', 'weights/corn_leaf_yolo11/best.pt')
+CORN_YOLO11_CONFIDENCE = float(os.environ.get('CORN_YOLO11_CONFIDENCE', '0.5'))
+CORN_YOLO11_DEVICE = os.environ.get('CORN_YOLO11_DEVICE', 'cpu')
+
+# Kornrows/YOLOv5 runs in an isolated interpreter, never imported by Django.
+KORNROWS_REPO = BASE_DIR / os.environ.get('KORNROWS_REPO', 'vendor/kornrows')
+KORNROWS_WEIGHTS = BASE_DIR / os.environ.get('KORNROWS_WEIGHTS', 'weights/kornrows/best.pt')
+KORNROWS_PYTHON = BASE_DIR / os.environ.get('KORNROWS_PYTHON', '.venv-kornrows/Scripts/python.exe')
+KORNROWS_CONFIDENCE = float(os.environ.get('KORNROWS_CONFIDENCE', '0.25'))
+KORNROWS_DEVICE = os.environ.get('KORNROWS_DEVICE', 'cpu')
+KORNROWS_IMAGE_SIZE = int(os.environ.get('KORNROWS_IMAGE_SIZE', '960'))
+KORNROWS_TIMEOUT = int(os.environ.get('KORNROWS_TIMEOUT', '120'))

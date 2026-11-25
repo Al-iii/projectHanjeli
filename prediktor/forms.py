@@ -40,3 +40,25 @@ class CornDetectionForm(forms.Form):
         finally:
             upload.seek(0)
         return upload
+
+
+class LeafDiseaseDetectionForm(CornDetectionForm):
+    model = forms.ChoiceField(label='Model deteksi', required=False, initial='hassan',
+                             widget=forms.Select(attrs={'class': 'form-select mb-3'}))
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        from .corn_inference import model_configs
+        self.fields['model'].choices = [(key, f"{value['title']} (ambang {value['confidence']:.0%})")
+                                        for key, value in model_configs().items()]
+
+    def clean_model(self):
+        # Old clients that omit a choice retain the previous model.
+        return self.cleaned_data['model'] or 'hassan'
+
+
+class KornrowsDetectionForm(CornDetectionForm):
+    """Share image-content validation with the existing leaf upload."""
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['gambar'].label = 'Foto tanaman jagung dari atas'

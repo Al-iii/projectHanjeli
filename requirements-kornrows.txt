@@ -1,0 +1,15 @@
+# Isolated Python 3.12 runtime only; do NOT install into Django's venv.
+# Install torch/torchvision CPU using the command in README-kornrows.md first.
+torch==2.5.1
+torchvision==0.20.1
+numpy==1.26.4
+opencv-python==4.10.0.84
+Pillow==10.4.0
+matplotlib==3.9.2
+pandas==2.2.3
+seaborn==0.13.2
+scipy==1.14.1
+PyYAML==6.0.2
+requests==2.32.3
+tqdm==4.67.1
+setuptools==75.8.0

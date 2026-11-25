@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% block title %}Deteksi Tanaman Jagung | Smart Agriculture{% endblock %}
+{% block content %}
+<h1 class="h3">Deteksi Tanaman Jagung</h1>
+<p class="text-secondary">Kornrows mendeteksi pusat tanaman jagung dengan kelas asli <code>cc</code>. Hasil adalah prediksi posisi objek, bukan kepastian jumlah tanaman.</p>
+<div class="alert {% if model_available %}alert-info{% else %}alert-warning{% endif %}" role="status">{{ model_status }}</div>
+<p>Gunakan foto lapangan dari atas dengan tanaman dan barisan yang terlihat terpisah, sesuai alur analisis foto drone pada kode sumber. Kesesuaian model belum dapat diuji tanpa checkpoint. Foto dekat satu daun ditangani oleh <a href="{% url 'prediktor:deteksi_jagung' %}">Deteksi Daun Jagung</a>.</p>
+<div class="card border-0 shadow-sm mb-4"><div class="card-body">
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form.gambar.label_tag }} {{ form.gambar }}
+    {% for error in form.gambar.errors %}<p class="text-danger mt-2" role="alert">{{ error }}</p>{% endfor %}
+    <p class="small text-secondary mt-2">JPEG, PNG, atau WebP; maksimal 10 MB, 6000 piksel per sisi, dan 20 megapiksel. Ambang confidence {{ threshold_percent|floatformat:0 }}% adalah nilai percobaan.</p>
+    <button type="submit" class="btn btn-success">Jalankan deteksi</button>
+  </form>
+</div></div>
+{% if error %}<div class="alert alert-danger" role="alert">{{ error }}</div>{% endif %}
+{% if has_result %}
+<div class="row g-3 mb-4">
+  <div class="col-12 col-lg-6"><div class="card h-100"><div class="card-body"><h2 class="h5">Gambar asli</h2><img class="img-fluid rounded" src="{{ original_url }}" alt="Foto tanaman jagung dengan orientasi diperbaiki"></div></div></div>
+  <div class="col-12 col-lg-6"><div class="card h-100"><div class="card-body"><h2 class="h5">Kotak dan titik pusat</h2><img class="img-fluid rounded" src="{{ annotated_url }}" alt="Kotak deteksi hijau dan titik pusat merah"></div></div></div>
+</div>
+<h2 class="h5">Jumlah objek terdeteksi: {{ detections|length }}</h2>
+{% if detections %}
+<div class="table-responsive"><table class="table table-striped"><thead><tr><th scope="col">Objek</th><th scope="col">Kelas</th><th scope="col">Confidence</th><th scope="col">Pusat X (px)</th><th scope="col">Pusat Y (px)</th></tr></thead><tbody>
+{% for item in detections %}<tr><td>{{ forloop.counter }}</td><td>{{ item.label }}</td><td>{{ item.confidence_percent|floatformat:2 }}%</td><td>{{ item.center_x|floatformat:1 }}</td><td>{{ item.center_y|floatformat:1 }}</td></tr>{% endfor %}
+</tbody></table></div>
+{% else %}<div class="alert alert-info">Tidak ada objek yang terdeteksi pada ambang confidence ini</div>{% endif %}
+<p class="small text-secondary">Titik pusat dihitung dari tengah kotak, bukan keluaran keypoint model. Koordinat piksel berasal dari kiri atas gambar asli yang dinormalisasi. Jumlah kotak belum tentu sama dengan jumlah tanaman sebenarnya.</p>
+{% endif %}
+<p class="small text-secondary">Fitur ini tidak mengukur tinggi atau jarak dalam cm, memprediksi pertumbuhan, maupun menentukan kebutuhan penyiraman. Hasil tidak disimpan sebagai Pengamatan bibit hanjeli.</p>
+{% endblock %}
